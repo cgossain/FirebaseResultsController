@@ -1,0 +1,6 @@
+framework module FirebaseResultsController {
+  umbrella header "FirebaseResultsController-umbrella.h"
+
+  export *
+  module * { export * }
+}

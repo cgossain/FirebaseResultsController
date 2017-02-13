@@ -1,0 +1,16 @@
+PODS:
+  - FirebaseResultsController (0.1.0)
+
+DEPENDENCIES:
+  - FirebaseResultsController (from `../`)
+
+EXTERNAL SOURCES:
+  FirebaseResultsController:
+    :path: ../
+
+SPEC CHECKSUMS:
+  FirebaseResultsController: 453594a724d3a5945e1641d312e422263c1cc2e2
+
+PODFILE CHECKSUM: ebba6254548d41ceb3cbc2dce634411f399b3e33
+
+COCOAPODS: 1.2.0
