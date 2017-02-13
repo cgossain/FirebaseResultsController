@@ -9,7 +9,7 @@ EXTERNAL SOURCES:
     :path: ../
 
 SPEC CHECKSUMS:
-  FirebaseResultsController: 453594a724d3a5945e1641d312e422263c1cc2e2
+  FirebaseResultsController: b998d72a91bb2b5335d4a87500e562c5137c2208
 
 PODFILE CHECKSUM: ebba6254548d41ceb3cbc2dce634411f399b3e33
 

@@ -1,8 +1,8 @@
 {
   "name": "FirebaseResultsController",
   "version": "0.1.0",
-  "summary": "A short description of FirebaseResultsController.",
-  "description": "TODO: Add long description of the pod here.",
+  "summary": "A controller to manage data stored in a Firebase database reference.",
+  "description": "The FirebaseResultsController is a controller object used to retrive, manage, and monitor data stored in a Firebase database reference. The controller offers an almost identical interface as NSFetchedResultsController.\n\nFirebaseResultsController supports fetching, sorting, filtering, and sectionning Firebase data, to easily back a UITableView.",
   "homepage": "https://github.com/cgossain@gmail.com/FirebaseResultsController",
   "license": {
     "type": "MIT",
@@ -16,7 +16,29 @@
     "tag": "0.1.0"
   },
   "platforms": {
-    "ios": "8.0"
+    "ios": "9.3"
   },
-  "source_files": "FirebaseResultsController/Classes/**/*"
+  "source_files": "FirebaseResultsController/Classes/**/*",
+  "libraries": [
+    "c++",
+    "icucore",
+    "sqlite3",
+    "z"
+  ],
+  "frameworks": [
+    "AddressBook",
+    "AdSupport",
+    "CFNetwork",
+    "SafariServices",
+    "Security",
+    "StoreKit",
+    "SystemConfiguration"
+  ],
+  "vendored_frameworks": [
+    "FirebaseResultsController/Frameworks/Firebase/Analytics/*.framework",
+    "FirebaseResultsController/Frameworks/Firebase/Database/*.framework"
+  ],
+  "pod_target_xcconfig": {
+    "OTHER_LDFLAGS": "$(inherited) -ObjC"
+  }
 }
