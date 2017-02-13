@@ -1,0 +1,11 @@
+use_frameworks!
+
+target 'FirebaseResultsController_Example' do
+  pod 'FirebaseResultsController', :path => '../'
+
+  target 'FirebaseResultsController_Tests' do
+    inherit! :search_paths
+
+    
+  end
+end
