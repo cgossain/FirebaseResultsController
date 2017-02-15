@@ -1,5 +1,7 @@
 PODS:
-  - FirebaseResultsController (0.1.0)
+  - Dwifft (0.5)
+  - FirebaseResultsController (0.1.0):
+    - Dwifft (~> 0.5)
 
 DEPENDENCIES:
   - FirebaseResultsController (from `../`)
@@ -9,8 +11,9 @@ EXTERNAL SOURCES:
     :path: ../
 
 SPEC CHECKSUMS:
-  FirebaseResultsController: b998d72a91bb2b5335d4a87500e562c5137c2208
+  Dwifft: 9b7f1e55950e27b9dcdbb4d48502625cb4690b97
+  FirebaseResultsController: cc5837bcfcf94b97c7d074fd9d2a9ed68754f5d8
 
-PODFILE CHECKSUM: ebba6254548d41ceb3cbc2dce634411f399b3e33
+PODFILE CHECKSUM: 220f8cca405de62cb78253e3dea468126df6dab8
 
 COCOAPODS: 1.2.0
