@@ -10,6 +10,7 @@ import Foundation
 import FirebaseDatabase
 
 extension Array {
+    
     /// From Stack Overflow:
     /// http://stackoverflow.com/questions/26678362/how-do-i-insert-an-element-at-the-correct-position-into-a-sorted-array-in-swift
     ///
@@ -22,9 +23,11 @@ extension Array {
             let mid = (low + high)/2
             if isOrderedBefore(self[mid], element) {
                 low = mid + 1
-            } else if isOrderedBefore(element, self[mid]) {
+            }
+            else if isOrderedBefore(element, self[mid]) {
                 high = mid - 1
-            } else {
+            }
+            else {
                 return mid // found at position `mid`
             }
         }
@@ -33,32 +36,24 @@ extension Array {
     
 }
 
-
-extension Array where Element: Section {
+extension Array where Element: FIRDataSnapshot {
     
-    func contains(snapshot: FIRDataSnapshot) -> Bool {
-        if let _ = lookup(snapshot: snapshot) {
-            return true
-        }
-        return false
-    }
-    
-    func lookup(snapshot: FIRDataSnapshot) -> (section: Section, path: IndexPath)? {
-        for (sectionIdx, section) in self.enumerated() {
-            if let rowIdx = section.indexOf(snapshot: snapshot) {
-                return (section: section, path: IndexPath(row: rowIdx, section: sectionIdx))
+    /// Returns the index at which you should insert the snapshot in order to maintain a sorted array (according to the given sort descriptors).
+    func insertionIndex(of element: Element, using sortDescriptors: [NSSortDescriptor]) -> Int {
+        let idx = self.insertionIndex(of: element, isOrderedBefore: {
+            var result: ComparisonResult = .orderedAscending
+            for descriptor in sortDescriptors {
+                result = descriptor.compare($0.value, to: $1.value)
+                
+                if result != .orderedSame {
+                    break
+                }
             }
-        }
-        return nil
-    }
-    
-    func lookup(sectionKeyValue: String) -> (section: Section, sectionIndex: Int)? {
-        for (sectionIdx, section) in self.enumerated() {
-            if section.sectionKeyValue == sectionKeyValue {
-                return (section: section, sectionIndex: sectionIdx)
-            }
-        }
-        return nil
+            
+            // if `orderedAscending`, the first element is ordered before the second element
+            return (result == .orderedAscending)
+        })
+        return idx
     }
     
 }

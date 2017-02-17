@@ -43,13 +43,11 @@ public class FirebaseResultsController {
     
     /// The results of the fetch. Returns `nil` if `performFetch()` hasn't yet been called.
     public var fetchedObjects: [FIRDataSnapshot]? { return currentFetchResults?.results }
-//
-//    /// The sections for the receiver’s fetch results.
-//    public var sections: [Section] { return mutableSections }
-//    
-//    /// The mutable sections for the receiver’s fetch results.
-//    fileprivate var mutableSections = [Section]()
+
+    /// The sections for the receiver’s fetch results.
+    public var sections: [Section] { return currentFetchResults?.sections ?? [] }
     
+    /// The current fetch results state.
     fileprivate var currentFetchResults: FetchResults?
     
     // firebase observer handles
@@ -225,6 +223,12 @@ extension FirebaseResultsController: BatchingControllerDelegate {
         // apply the changes to the pending results
         pendingFetchResults.apply(inserted: Array(inserted), updated: Array(changed), deleted: Array(removed))
         
+        // list the sections
+        print("\n")
+        print(pendingFetchResults.sectionKeyValues)
+        print(pendingFetchResults.sectionsBySectionKeyValue)
+        print(pendingFetchResults.sections)
+        print("\n")
         
         // compute the diff
 //        if let currentFetchResults = currentFetchResults {

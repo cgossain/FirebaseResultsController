@@ -10,6 +10,8 @@ import Foundation
 import FirebaseDatabase
 
 
+private let FetchResultsNilSectionName = "" // the name of the `nil` section
+
 class FetchResults {
     
     /// The FirebaseFetchRequest instance used to do the fetching. The sort descriptor used in the request groups objects into sections.
@@ -21,9 +23,27 @@ class FetchResults {
     /// The current fetch results ordered by section first (if a `sectionNameKeyPath` was provided), then by the fetch request sort descriptors.
     fileprivate(set) var results: [FIRDataSnapshot] = []
     
-    /// An array representing the sorted section names of all sections contained in the results.
+    /// An array containing the name of each section that exists in the results. The order of the items in this list represent the order that the sections should appear.
     /// -note: If the `sectionNameKeyPath` value is `nil`, a single section will be generated.
-    fileprivate(set) var sectionKeyValues: [String] = []
+    var sectionKeyValues: [String] {
+        return Array(sectionsBySectionKeyValue.keys).sorted(by: <)
+    }
+    
+    /// The fetch results as arranged sections.
+    var sections: [Section] {
+        if let sections = _sections {
+            return sections
+        }
+        
+        // compute the sections array
+        let computed = Array(sectionsBySectionKeyValue.values).sorted(by: { $0.sectionKeyValue < $1.sectionKeyValue })
+        _sections = computed
+        return computed
+    }
+    fileprivate var _sections: [Section]? // hold the current non-stale sections array
+    
+    /// A dictionary that maps the current sections to their sectionKeyValue.
+    fileprivate(set) var sectionsBySectionKeyValue: [String: Section] = [:]
     
     /// Initializes a new fetch results objects with the given `fetchRequest` and `sectionNameKeyPath`. These are used to 
     /// filter and order results as snapshots are inserted and removed.
@@ -40,7 +60,13 @@ class FetchResults {
     convenience init(fetchResults: FetchResults) {
         self.init(fetchRequest: fetchResults.fetchRequest, sectionNameKeyPath: fetchResults.sectionNameKeyPath)
         results.append(contentsOf: fetchResults.results)
-        sectionKeyValues = fetchResults.sectionKeyValues
+        
+        // copy the section objects; we don't want to affect the original fetch results sections when we make changes here
+        var copiedSectionsBySectionKeyValue: [String: Section] = [:]
+        for (sectionKeyValue, section) in fetchResults.sectionsBySectionKeyValue {
+            copiedSectionsBySectionKeyValue[sectionKeyValue] = section.copy() as? Section
+        }
+        sectionsBySectionKeyValue = copiedSectionsBySectionKeyValue
     }
     
     /// Applies the given changes to the current results.
@@ -61,6 +87,8 @@ class FetchResults {
             delete(snapshot: snapshot)
         }
         
+        // reset the sections array since the data has changed
+        _sections = nil
     }
     
 }
@@ -75,22 +103,16 @@ extension FetchResults {
         }
         
         // compute the insertion index that maintains the sort order
-        let idx = results.insertionIndex(of: snapshot, isOrderedBefore: {
-            var result: ComparisonResult = .orderedAscending
-            for descriptor in fetchSortDescriptors {
-                result = descriptor.compare($0.value, to: $1.value)
-                
-                if result != .orderedSame {
-                    break
-                }
-            }
-            
-            // if `orderedAscending`, the first element is ordered before the second element
-            return (result == .orderedAscending)
-        })
+        let idx = results.insertionIndex(of: snapshot, using: fetchSortDescriptors)
         
         // insert at the insertion index
         results.insert(snapshot, at: idx)
+        
+        // create/update the section
+        let sectionKeyValue = snapshot.sectionKeyValue(forSectionNameKeyPath: sectionNameKeyPath)
+        let section = sectionsBySectionKeyValue[sectionKeyValue] ?? Section(sectionKeyValue: sectionKeyValue, sortDescriptors: fetchRequest.sortDescriptors)
+        section.insert(snapshot: snapshot)
+        sectionsBySectionKeyValue[sectionKeyValue] = section
     }
     
     /// Removes the snapshot if it exists in the results.
@@ -99,7 +121,14 @@ extension FetchResults {
             return
         }
         
+        // remove the snapshot
         results.remove(at: idx)
+        
+        // update/remove the section
+        let sectionKeyValue = snapshot.sectionKeyValue(forSectionNameKeyPath: sectionNameKeyPath)
+        let section = sectionsBySectionKeyValue[sectionKeyValue]! // force unwrap; there is something wrong at this point if the force unwrap does not work (since it exists in the `results` array)
+        section.remove(snapshot: snapshot)
+        sectionsBySectionKeyValue[sectionKeyValue] = section.numberOfObjects < 1 ? nil : section
     }
     
     /// Replaces the existing version of the snapshot with the specified one.
@@ -112,6 +141,7 @@ extension FetchResults {
 
 extension FetchResults {
     
+    /// Specifies all the sort descriptors that should be used when inserting snapshots (including the `sectionNameKeyPath`).
     fileprivate var fetchSortDescriptors: [NSSortDescriptor] {
         var descriptors = [NSSortDescriptor]()
         
@@ -128,40 +158,9 @@ extension FetchResults {
         return descriptors
     }
     
+    /// Extracts the section key value of the givent snapshot.
     fileprivate func sectionKeyValue(of snapshot: FIRDataSnapshot) -> String {
         return snapshot.sectionKeyValue(forSectionNameKeyPath: self.sectionNameKeyPath)
-    }
-    
-    fileprivate enum EffectiveChangeType {
-        case insert
-        case change
-        case remove
-        case ignore
-    }
-    
-    /// Determines whether the given snapshot from a change notification can be reassigned as an insert or removal, or if it should remain a change.
-    fileprivate func effectiveChangeType(for snapshot: FIRDataSnapshot) -> EffectiveChangeType {
-        let canInclude = self.canInclude(snapshot: snapshot)
-        let currentlyExists = results.contains(snapshot)
-        
-        if canInclude && !currentlyExists {
-            // the snapshot can now be included in our data set, but does not currently exist
-            // this indicates that the snapshot has changed such that is can now be included
-            // and is therefore, effectively an insertion
-            return .insert
-        }
-        else if !canInclude && currentlyExists {
-            // the snapshot can not be included in our data set, but currently exist
-            // this indicates that the snapshot has changed such that is can no longer be included
-            // and is therefore, effectively a removal
-            return .remove
-        }
-        else if canInclude {
-            return .change
-        }
-        else {
-            return .ignore
-        }
     }
     
     /// Returns true if the given snapshot should be included in the data set.
@@ -176,11 +175,12 @@ extension FetchResults {
 
 extension FIRDataSnapshot {
     
+    /// Extracts the section key value for the given key path.
     fileprivate func sectionKeyValue(forSectionNameKeyPath sectionNameKeyPath: String?) -> String {
         if let sectionNameKeyPath = sectionNameKeyPath, let obj = self.value as? AnyObject, let value = obj.value(forKeyPath: sectionNameKeyPath) as? AnyObject {
             return String(describing: value)
         }
-        return "" // name of the `nil` section
+        return FetchResultsNilSectionName
     }
     
 }

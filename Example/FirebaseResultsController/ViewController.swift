@@ -20,9 +20,9 @@ class ViewController: UITableViewController {
         let query = self.root.queryOrderedByKey()
         
         let fetchRequest = FirebaseFetchRequest(query: query)
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
+        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
         
-        let controller = FirebaseResultsController(fetchRequest: fetchRequest, sectionNameKeyPath: nil)
+        let controller = FirebaseResultsController(fetchRequest: fetchRequest, sectionNameKeyPath: "category")
         controller.delegate = self
         return controller
     }()
@@ -48,7 +48,8 @@ class ViewController: UITableViewController {
     
     @objc func addButtonTapped(_ sender: UIBarButtonItem) {
         let date = randomDate()
-        root.childByAutoId().setValue(["date": date.timeIntervalSinceReferenceDate])
+        root.childByAutoId().setValue(["date": date.timeIntervalSinceReferenceDate,
+                                       "category": randomCategory()])
     }
     
     func randomDate() -> Date {
@@ -58,25 +59,34 @@ class ViewController: UITableViewController {
         return randomDate
     }
     
+    func randomCategory() -> Int {
+        return Int(arc4random_uniform(4))
+    }
+    
     // MARK: - UITableViewDataSource
     
     override func numberOfSections(in tableView: UITableView) -> Int {
-        return 1
+        return resultsController.sections.count
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return resultsController.fetchedObjects?.count ?? 0
+        return resultsController.sections[section].numberOfObjects
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: dateCellIdentifier, for: indexPath)
-        if let value = resultsController.fetchedObjects?[indexPath.row].value as? [String: Any], let timeInterval = value["date"] as? Double {
+        let section = resultsController.sections[indexPath.section]
+        if let timeInterval = (section.objects[indexPath.row].value as? [String: Any])?["date"] as? Double {
             cell.textLabel?.text = dateFormatter.string(from: Date(timeIntervalSinceReferenceDate: timeInterval))
         }
         else {
             cell.textLabel?.text = "error reading data"
         }
         return cell
+    }
+    
+    override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        return resultsController.sections[section].name
     }
     
     override func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]? {
