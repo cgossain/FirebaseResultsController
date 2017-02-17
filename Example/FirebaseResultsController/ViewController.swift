@@ -75,13 +75,12 @@ class ViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: dateCellIdentifier, for: indexPath)
-        let section = resultsController.sections[indexPath.section]
-        if let timeInterval = (section.objects[indexPath.row].value as? [String: Any])?["date"] as? Double {
+        
+        let snapshot = try! resultsController.object(at: indexPath)
+        if let timeInterval = (snapshot.value as? [String: Any])?["date"] as? Double {
             cell.textLabel?.text = dateFormatter.string(from: Date(timeIntervalSinceReferenceDate: timeInterval))
         }
-        else {
-            cell.textLabel?.text = "error reading data"
-        }
+        
         return cell
     }
     
@@ -91,10 +90,22 @@ class ViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]? {
         let delete = UITableViewRowAction(style: .destructive, title: "Delete") { (action, path) in
-            let snapshot = self.resultsController.fetchedObjects?[path.row]
-            snapshot?.ref.removeValue()
+            let snapshot = try! self.resultsController.object(at: indexPath)
+            snapshot.ref.removeValue()
         }
         return [delete]
+    }
+    
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        // print the snapshot description
+        let snapshot = try! resultsController.object(at: indexPath)
+        print("Snapshot: \(snapshot)")
+        
+        // make sure the controller is spitting back the correct path
+        let path = resultsController.indexPath(for: snapshot)
+        print("Controller Path: \(path)")
+        
+        tableView.deselectRow(at: indexPath, animated: true)
     }
 }
 

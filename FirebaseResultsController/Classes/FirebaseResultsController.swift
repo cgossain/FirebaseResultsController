@@ -82,7 +82,7 @@ public class FirebaseResultsController {
     }
     
     /**
-     Executes the fetch described by the fetch request. You must call this method to fetch the initial data and to setup the query observers.
+     Executes the fetch described by the fetch request. You must call this method to start fetching the initial data and to setup the query observers.
      If you change the sort decriptors or predicate on the fetch request, you must call this method to reconfigure the receiver for the updated fetch request.
      */
     public func performFetch() {
@@ -103,34 +103,33 @@ public class FirebaseResultsController {
         registerQueryObservers()
     }
     
-//    /// Returns the snapshot at a given indexPath.
-//    ///
-//    /// - parameters:
-//    ///     - at: An index path in the fetch results. If indexPath does not describe a valid index path in the fetch results, an exception is raised.
-//    ///
-//    /// - returns: The object at a given index path in the fetch results.
-//    public func object(at: IndexPath) throws -> FIRDataSnapshot {
-//        if at.section < sections.count {
-//            let section = sections[at.section]
-//            
-//            if at.row < section.numberOfObjects {
-//                return section.objects[at.row]
-//            }
-//        }
-//        
-//        throw FirebaseResultsControllerError.invalidIndexPath(row: at.row, section: at.section)
-//    }
-//    
-//    /// Returns the indexPath of a given snapshot.
-//    ///
-//    /// - parameters:
-//    ///     - for: An object in the receiver’s fetch results.
-//    ///
-//    /// - returns: The index path of object in the receiver’s fetch results, or nil if object could not be found.
-//    public func indexPath(for snapshot: FIRDataSnapshot) -> IndexPath? {
-//        let lookup = mutableSections.lookup(snapshot: snapshot)
-//        return lookup?.path
-//    }
+    /// Returns the snapshot at a given indexPath.
+    ///
+    /// - parameters:
+    ///     - at: An index path in the fetch results. If indexPath does not describe a valid index path in the fetch results, an error is thrown.
+    ///
+    /// - returns: The object at a given index path in the fetch results.
+    public func object(at: IndexPath) throws -> FIRDataSnapshot {
+        if at.section < sections.count {
+            let section = sections[at.section]
+            
+            if at.row < section.numberOfObjects {
+                return section.objects[at.row]
+            }
+        }
+        
+        throw FirebaseResultsControllerError.invalidIndexPath(row: at.row, section: at.section)
+    }
+    
+    /// Returns the indexPath of a given snapshot.
+    ///
+    /// - parameters:
+    ///     - for: An object in the receiver’s fetch results.
+    ///
+    /// - returns: The index path of object in the receiver’s fetch results, or nil if object could not be found.
+    public func indexPath(for snapshot: FIRDataSnapshot) -> IndexPath? {
+        return sections.lookup(snapshot: snapshot)?.path
+    }
     
 }
 

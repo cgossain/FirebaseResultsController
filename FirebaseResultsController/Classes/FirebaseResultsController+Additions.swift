@@ -57,3 +57,16 @@ extension Array where Element: FIRDataSnapshot {
     }
     
 }
+
+extension Array where Element: Section {
+    
+    func lookup(snapshot: FIRDataSnapshot) -> (section: Section, path: IndexPath)? {
+        for (sectionIdx, section) in enumerated() {
+            if let rowIdx = section.index(of: snapshot) {
+                return (section: section, path: IndexPath(row: rowIdx, section: sectionIdx))
+            }
+        }
+        return nil
+    }
+    
+}

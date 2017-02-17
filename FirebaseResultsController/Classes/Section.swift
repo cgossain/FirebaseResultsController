@@ -49,11 +49,19 @@ public class Section {
     /// Removes the given snapshot from the receivers contents and returns the index from which it was removed.
     @discardableResult
     func remove(snapshot: FIRDataSnapshot) -> Int? {
-        guard let idx = objects.index(where: { $0.key == snapshot.key }) else {
+        guard let idx = index(of: snapshot) else {
             return nil
         }
         
         objects.remove(at: idx)
+        return idx
+    }
+    
+    /// Returns the index of the snapshot in the section, or `nil` if it was not found.
+    func index(of snapshot: FIRDataSnapshot) -> Int? {
+        guard let idx = objects.index(where: { $0.key == snapshot.key }) else {
+            return nil
+        }
         return idx
     }
     
