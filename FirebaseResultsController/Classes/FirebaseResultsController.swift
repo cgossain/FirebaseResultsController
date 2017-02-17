@@ -67,7 +67,7 @@ public class FirebaseResultsController {
     fileprivate var batchingController: BatchingController!
     
     /// A flag that indicates whether the controller has fetched its initial data.
-    fileprivate var didFetchInitialData = true
+    fileprivate var didFetchInitialData = false
     
     
     /// Initializes the results controller with the given fetch request and an optional sectionNameKeyPath to section fetched data on.
@@ -145,8 +145,6 @@ extension FirebaseResultsController {
     }
     
     fileprivate func registerQueryObservers() {
-        batchingController?.start()
-        
         let handle = currentFetchHandle
         
         childAddedHandle = fetchRequest.query.observe(.childAdded, with: { [unowned self] (snapshot) in
@@ -178,9 +176,11 @@ extension FirebaseResultsController {
                 if self.didFetchInitialData {
                     return
                 }
+                self.didFetchInitialData = true
                 
-                // fire off a bunch of section insert notifications; this represents the initial fetch
-                
+                // force process the initial batch; this ensure the controller fires a `controllerDidChangeContent:` message when there is no data,
+                // but this will also reduce the lag on the initial fetch caused by needing to wait for the batching timer to fire
+                self.batchingController.processBatch()
             }
         })
     }
