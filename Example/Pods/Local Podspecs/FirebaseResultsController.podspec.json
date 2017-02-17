@@ -1,8 +1,8 @@
 {
   "name": "FirebaseResultsController",
   "version": "0.1.0",
-  "summary": "A controller to manage data stored in a Firebase database reference.",
-  "description": "The FirebaseResultsController is a controller object used to retrive, manage, and monitor data stored in a Firebase database reference. The controller offers an almost identical interface as NSFetchedResultsController.\n\nFirebaseResultsController supports fetching, sorting, filtering, and sectionning Firebase data, to easily back a UITableView.",
+  "summary": "An NSFetchedResultsController replacement for Firebase, written in Swift.",
+  "description": "The FirebaseResultsController is an NSFetchedResultsController replacement that allows you to monitor (fetch, filter, sort, section, and diff) data stored in a Firebase realtime database.\n\nThe controller follows an identical interface as NSFetchedResultsController, which can be used to power your UI. The controller can also diff changes as they occur live, allowing you to perform barch updates on UITableView and UICollectionView.",
   "homepage": "https://github.com/cgossain@gmail.com/FirebaseResultsController",
   "license": {
     "type": "MIT",

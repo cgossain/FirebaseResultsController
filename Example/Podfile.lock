@@ -12,7 +12,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Dwifft: 9b7f1e55950e27b9dcdbb4d48502625cb4690b97
-  FirebaseResultsController: cc5837bcfcf94b97c7d074fd9d2a9ed68754f5d8
+  FirebaseResultsController: 30c3ca3a33aa8d000e08956e17a8f4361260ebe6
 
 PODFILE CHECKSUM: 220f8cca405de62cb78253e3dea468126df6dab8
 

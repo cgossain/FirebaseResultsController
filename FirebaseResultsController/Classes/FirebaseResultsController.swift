@@ -42,13 +42,13 @@ public class FirebaseResultsController {
     public weak var delegate: FirebaseResultsControllerDelegate?
     
     /// The results of the fetch. Returns `nil` if `performFetch()` hasn't yet been called.
-    public var fetchedObjects: [FIRDataSnapshot]? { return currentFetchResults?.results }
+    public var fetchedObjects: [FIRDataSnapshot]? { return currentFetchResult?.results }
 
     /// The sections for the receiver’s fetch results.
-    public var sections: [Section] { return currentFetchResults?.sections ?? [] }
+    public var sections: [Section] { return currentFetchResult?.sections ?? [] }
     
     /// The current fetch results state.
-    fileprivate var currentFetchResults: FetchResults?
+    fileprivate var currentFetchResult: FetchResult?
     
     // firebase observer handles
     fileprivate var childAddedHandle: FIRDatabaseHandle = 0
@@ -209,34 +209,34 @@ extension FirebaseResultsController: BatchingControllerDelegate {
     }
     
     func controller(_ controller: BatchingController, finishedBatchingWithInserted inserted: Set<FIRDataSnapshot>, changed: Set<FIRDataSnapshot>, removed: Set<FIRDataSnapshot>) {
-        var pendingFetchResults: FetchResults!
+        var pendingFetchResult: FetchResult!
         
         // create the pending results object
-        if let currentFetchResults = currentFetchResults {
-            pendingFetchResults = FetchResults(fetchResults: currentFetchResults)
+        if let currentFetchResult = currentFetchResult {
+            pendingFetchResult = FetchResult(fetchResult: currentFetchResult)
         }
         else {
-            pendingFetchResults = FetchResults(fetchRequest: activeFetchRequest, sectionNameKeyPath: sectionNameKeyPath)
+            pendingFetchResult = FetchResult(fetchRequest: activeFetchRequest, sectionNameKeyPath: sectionNameKeyPath)
         }
         
         // apply the changes to the pending results
-        pendingFetchResults.apply(inserted: Array(inserted), updated: Array(changed), deleted: Array(removed))
+        pendingFetchResult.apply(inserted: Array(inserted), updated: Array(changed), deleted: Array(removed))
         
         // list the sections
         print("\n")
-        print(pendingFetchResults.sectionKeyValues)
-        print(pendingFetchResults.sectionsBySectionKeyValue)
-        print(pendingFetchResults.sections)
+        print(pendingFetchResult.sectionKeyValues)
+        print(pendingFetchResult.sectionsBySectionKeyValue)
+        print(pendingFetchResult.sections)
         print("\n")
         
         // compute the diff
-//        if let currentFetchResults = currentFetchResults {
+//        if let currentFetchResult = currentFetchResult {
 //            
 //            // compute the section diffs
-//            let sectionsDiff = currentFetchResults.sectionKeyValues.diff(pendingFetchResults.sectionKeyValues)
+//            let sectionsDiff = currentFetchResult.sectionKeyValues.diff(pendingFetchResult.sectionKeyValues)
 //            
 //            // compute the row diffs
-//            let rowsDiff = currentFetchResults.results.diff(pendingFetchResults.results)
+//            let rowsDiff = currentFetchResult.results.diff(pendingFetchResult.results)
 //            
 //        }
 //        else {
@@ -248,7 +248,7 @@ extension FirebaseResultsController: BatchingControllerDelegate {
 //        }
         
         // apply the new results
-        currentFetchResults = pendingFetchResults
+        currentFetchResult = pendingFetchResult
         
         // notify the delegate
         delegate?.controllerDidChangeContent(self)

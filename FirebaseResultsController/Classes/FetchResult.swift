@@ -1,5 +1,5 @@
 //
-//  FetchResults.swift
+//  FetchResult.swift
 //  Pods
 //
 //  Created by Christian Gossain on 2017-02-14.
@@ -10,9 +10,9 @@ import Foundation
 import FirebaseDatabase
 
 
-private let FetchResultsNilSectionName = "" // the name of the `nil` section
+private let FetchResultNilSectionName = "" // the name of the `nil` section
 
-class FetchResults {
+class FetchResult {
     
     /// The FirebaseFetchRequest instance used to do the fetching. The sort descriptor used in the request groups objects into sections.
     let fetchRequest: FirebaseFetchRequest
@@ -56,14 +56,14 @@ class FetchResults {
         self.sectionNameKeyPath = sectionNameKeyPath
     }
     
-    /// Creates a new FetchResults object, initialized with the contents of an existing FetchResults object.
-    convenience init(fetchResults: FetchResults) {
-        self.init(fetchRequest: fetchResults.fetchRequest, sectionNameKeyPath: fetchResults.sectionNameKeyPath)
-        results.append(contentsOf: fetchResults.results)
+    /// Creates a new FetchResult object, initialized with the contents of an existing FetchResult object.
+    convenience init(fetchResult: FetchResult) {
+        self.init(fetchRequest: fetchResult.fetchRequest, sectionNameKeyPath: fetchResult.sectionNameKeyPath)
+        results.append(contentsOf: fetchResult.results)
         
         // copy the section objects; we don't want to affect the original fetch results sections when we make changes here
         var copiedSectionsBySectionKeyValue: [String: Section] = [:]
-        for (sectionKeyValue, section) in fetchResults.sectionsBySectionKeyValue {
+        for (sectionKeyValue, section) in fetchResult.sectionsBySectionKeyValue {
             copiedSectionsBySectionKeyValue[sectionKeyValue] = section.copy() as? Section
         }
         sectionsBySectionKeyValue = copiedSectionsBySectionKeyValue
@@ -93,7 +93,7 @@ class FetchResults {
     
 }
 
-extension FetchResults {
+extension FetchResult {
     
     /// Adds the snapshot to the results at the correct position, and if it evaluates against the fetch request predicate.
     func insert(snapshot: FIRDataSnapshot) {
@@ -139,7 +139,7 @@ extension FetchResults {
     
 }
 
-extension FetchResults {
+extension FetchResult {
     
     /// Specifies all the sort descriptors that should be used when inserting snapshots (including the `sectionNameKeyPath`).
     fileprivate var fetchSortDescriptors: [NSSortDescriptor] {
@@ -180,7 +180,7 @@ extension FIRDataSnapshot {
         if let sectionNameKeyPath = sectionNameKeyPath, let obj = self.value as? AnyObject, let value = obj.value(forKeyPath: sectionNameKeyPath) as? AnyObject {
             return String(describing: value)
         }
-        return FetchResultsNilSectionName
+        return FetchResultNilSectionName
     }
     
 }
