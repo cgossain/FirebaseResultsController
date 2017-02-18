@@ -12,6 +12,8 @@ import FirebaseDatabase
 
 class ViewController: UITableViewController {
     
+    var didFetchInitialData = false
+    
     fileprivate let dateCellIdentifier = "dateCellIdentifier"
     
     var willBeginChangingContentTime = Date()
@@ -118,6 +120,15 @@ extension ViewController: FirebaseResultsControllerDelegate {
     }
     
     func controllerDidChangeContent(_ controller: FirebaseResultsController, changes: FetchResultDiff) {
+        if !didFetchInitialData {
+            didFetchInitialData = true
+            
+            tableView.reloadData()
+            
+            return
+        }
+        
+        
         tableView.beginUpdates()
         
         // inserted sections
