@@ -174,9 +174,19 @@ extension FetchResult {
     }
     
     /// Replaces the existing version of the snapshot with the specified one.
-    func update(snapshot: FIRDataSnapshot) {
-        delete(snapshot: snapshot)
-        insert(snapshot: snapshot)
+    func update(snapshot new: FIRDataSnapshot) {
+        // since the values will have changed, we cannot remove the "new" version of the snapshot, instead we'll have to locate and remove the "old" version of this snapshot
+        // this is important when we are sectionning because the `sectionKeyValue` may have changed
+        guard let idx = results.index(where: { $0.key == new.key }) else {
+            return
+        }
+        
+        // remove the old version
+        let old = results[idx]
+        delete(snapshot: old)
+        
+        // insert the updated version of the snapshot
+        insert(snapshot: new)
     }
     
 }
