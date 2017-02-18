@@ -223,7 +223,7 @@ extension FirebaseResultsController: BatchingControllerDelegate {
 //        print(pendingFetchResult.sections)
 //        print("\n")
         
-        let diff = FetchResultDiff(from: currentFetchResult, to: pendingFetchResult)
+        let diff = FetchResultDiff(from: currentFetchResult, to: pendingFetchResult, changedObjects: Array(changed))
         
         // apply the new results
         currentFetchResult = pendingFetchResult

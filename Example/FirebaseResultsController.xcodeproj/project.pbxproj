@@ -218,10 +218,12 @@
 				TargetAttributes = {
 					607FACCF1AFB9204008FA782 = {
 						CreatedOnToolsVersion = 6.3.1;
+						DevelopmentTeam = TY457QWLH7;
 						LastSwiftMigration = 0820;
 					};
 					607FACE41AFB9204008FA782 = {
 						CreatedOnToolsVersion = 6.3.1;
+						DevelopmentTeam = TY457QWLH7;
 						LastSwiftMigration = 0820;
 						TestTargetID = 607FACCF1AFB9204008FA782;
 					};
@@ -495,6 +497,7 @@
 			baseConfigurationReference = A95FAAA510DFAC23CA4C2B1B /* Pods-FirebaseResultsController_Example.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = TY457QWLH7;
 				INFOPLIST_FILE = FirebaseResultsController/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MODULE_NAME = ExampleApp;
@@ -509,6 +512,7 @@
 			baseConfigurationReference = 7A62CCF8AABBED579E93106C /* Pods-FirebaseResultsController_Example.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = TY457QWLH7;
 				INFOPLIST_FILE = FirebaseResultsController/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MODULE_NAME = ExampleApp;
@@ -522,6 +526,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 41609C4AF50B5906913D1C33 /* Pods-FirebaseResultsController_Tests.debug.xcconfig */;
 			buildSettings = {
+				DEVELOPMENT_TEAM = TY457QWLH7;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SDKROOT)/Developer/Library/Frameworks",
 					"$(inherited)",
@@ -542,6 +547,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 7C8EBA9197AF5A5DC4EFCFA9 /* Pods-FirebaseResultsController_Tests.release.xcconfig */;
 			buildSettings = {
+				DEVELOPMENT_TEAM = TY457QWLH7;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SDKROOT)/Developer/Library/Frameworks",
 					"$(inherited)",

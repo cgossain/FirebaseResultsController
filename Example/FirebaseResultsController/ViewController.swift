@@ -140,6 +140,14 @@ extension ViewController: FirebaseResultsControllerDelegate {
             tableView.deleteRows(at: removed, with: .fade)
         }
         
+        // moved rows
+        if let moved = changes.movedRows {
+            for move in moved {
+                tableView.deleteRows(at: [move.from], with: .fade)
+                tableView.insertRows(at: [move.to], with: .fade)
+            }
+        }
+        
         tableView.endUpdates()
         
         let difference = Date().timeIntervalSince(willBeginChangingContentTime)
