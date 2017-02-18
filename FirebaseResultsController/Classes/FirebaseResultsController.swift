@@ -174,10 +174,10 @@ extension FirebaseResultsController {
         
         valueHandle = fetchRequest.query.observe(.value, with: { [unowned self] (snapshot) in
             if handle == self.currentFetchHandle {
-                if self.didFetchInitialData {
-                    return
-                }
-                self.didFetchInitialData = true
+//                if self.didFetchInitialData {
+//                    return
+//                }
+//                self.didFetchInitialData = true
                 
                 // force process the initial batch; this ensure the controller fires a `controllerDidChangeContent:` message when there is no data,
                 // but this will also reduce the lag on the initial fetch caused by needing to wait for the batching timer to fire
