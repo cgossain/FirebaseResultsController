@@ -26,7 +26,7 @@ class FetchResult {
     /// An array containing the name of each section that exists in the results. The order of the items in this list represent the order that the sections should appear.
     /// -note: If the `sectionNameKeyPath` value is `nil`, a single section will be generated.
     var sectionKeyValues: [String] {
-        return Array(sectionsBySectionKeyValue.keys).sorted(by: <)
+        return Array(sections.map({ $0.sectionKeyValue }))
     }
     
     /// The fetch results as arranged sections.
@@ -36,14 +36,20 @@ class FetchResult {
         }
         
         // compute the sections array
-        let computed = Array(sectionsBySectionKeyValue.values).sorted(by: { $0.sectionKeyValue < $1.sectionKeyValue })
+        let computed = Array(sectionsBySectionKeyValue.values).sorted(by: { $0.sectionKeyValue > $1.sectionKeyValue })
         _sections = computed
         return computed
     }
     fileprivate var _sections: [Section]? // hold the current non-stale sections array
     
-    /// A dictionary that maps the current sections to their sectionKeyValue.
-    fileprivate(set) var sectionsBySectionKeyValue: [String: Section] = [:]
+    /// A dictionary that maps a section to its `sectionKeyValue`.
+    fileprivate var sectionsBySectionKeyValue: [String: Section] = [:]
+    
+    /// A dictionary that maps a sections' index to its `sectionKeyValue`.
+    fileprivate var sectionIndicesBySectionKeyValue: [String: Int] = [:]
+    
+    /// A dictionary that maps the sections' offset (i.e. first index of the section in the overall `results` array) to its `sectionKeyValue`.
+    fileprivate var sectionOffsetsBySectionKeyValue: [String: Int] = [:]
     
     /// Initializes a new fetch results objects with the given `fetchRequest` and `sectionNameKeyPath`. These are used to 
     /// filter and order results as snapshots are inserted and removed.
@@ -87,8 +93,44 @@ class FetchResult {
             delete(snapshot: snapshot)
         }
         
-        // reset the sections array since the data has changed
+        // reset internal state since the contents have changed
         _sections = nil
+        sectionIndicesBySectionKeyValue.removeAll()
+        sectionOffsetsBySectionKeyValue.removeAll()
+    }
+    
+    /// Returns the section index of the specified snapshot in the receiver's results.
+    func sectionIndex(for snapshot: FIRDataSnapshot) -> Int? {
+        let sectionKeyValue = snapshot.sectionKeyValue(forSectionNameKeyPath: sectionNameKeyPath)
+        
+        if let idx = sectionIndicesBySectionKeyValue[sectionKeyValue] {
+            return idx
+        }
+        
+        // the index has not yet been computed; lets find it then store it to avoid redundant work the next time this function is called
+        guard let idx = sectionKeyValues.index(where: { $0 == sectionKeyValue }) else {
+            return nil
+        }
+        
+        sectionIndicesBySectionKeyValue[sectionKeyValue] = idx
+        return idx
+    }
+    
+    /// Returns the index if the first snapshot in the section that the snapshot belongs to.
+    func sectionOffset(for snapshot: FIRDataSnapshot) -> Int? {
+        let sectionKeyValue = snapshot.sectionKeyValue(forSectionNameKeyPath: sectionNameKeyPath)
+        
+        if let idx = sectionOffsetsBySectionKeyValue[sectionKeyValue] {
+            return idx
+        }
+        
+        // the offset has not yet been computed; lets find it then store it to avoid redundant work the next time this function is called
+        guard let idx = results.index(where: { $0.sectionKeyValue(forSectionNameKeyPath: sectionNameKeyPath) == sectionKeyValue }) else {
+            return nil
+        }
+        
+        sectionOffsetsBySectionKeyValue[sectionKeyValue] = idx
+        return idx
     }
     
 }
@@ -147,7 +189,7 @@ extension FetchResult {
         
         // sort by the sections first
         if let sectionNameKeyPath = sectionNameKeyPath {
-            descriptors.append(NSSortDescriptor(key: sectionNameKeyPath, ascending: true))
+            descriptors.append(NSSortDescriptor(key: sectionNameKeyPath, ascending: false))
         }
         
         // then add the custom sort descriptors
@@ -176,7 +218,7 @@ extension FetchResult {
 extension FIRDataSnapshot {
     
     /// Extracts the section key value for the given key path.
-    fileprivate func sectionKeyValue(forSectionNameKeyPath sectionNameKeyPath: String?) -> String {
+    func sectionKeyValue(forSectionNameKeyPath sectionNameKeyPath: String?) -> String {
         if let sectionNameKeyPath = sectionNameKeyPath, let obj = self.value as? AnyObject, let value = obj.value(forKeyPath: sectionNameKeyPath) as? AnyObject {
             return String(describing: value)
         }
