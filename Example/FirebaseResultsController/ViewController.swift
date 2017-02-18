@@ -14,6 +14,8 @@ class ViewController: UITableViewController {
     
     fileprivate let dateCellIdentifier = "dateCellIdentifier"
     
+    var willBeginChangingContentTime = Date()
+    
     lazy var root = FIRDatabase.database().reference().child("dates")
     
     lazy var resultsController: FirebaseResultsController = {
@@ -112,11 +114,37 @@ class ViewController: UITableViewController {
 extension ViewController: FirebaseResultsControllerDelegate {
     
     func controllerWillChangeContent(_ controller: FirebaseResultsController) {
-        
+        willBeginChangingContentTime = Date()
     }
     
-    func controllerDidChangeContent(_ controller: FirebaseResultsController) {
-        tableView.reloadData()
+    func controllerDidChangeContent(_ controller: FirebaseResultsController, changes: FetchResultDiff) {
+        tableView.beginUpdates()
+        
+        // inserted sections
+        if let inserted = changes.insertedSections {
+            tableView.insertSections(inserted, with: .fade)
+        }
+        
+        // removed sections
+        if let removed = changes.removedSections {
+            tableView.deleteSections(removed, with: .fade)
+        }
+        
+        // inserted rows
+        if let inserted = changes.insertedRows {
+            tableView.insertRows(at: inserted, with: .fade)
+        }
+        
+        // removed rows
+        if let removed = changes.removedRows {
+            tableView.deleteRows(at: removed, with: .fade)
+        }
+        
+        tableView.endUpdates()
+        
+        let difference = Date().timeIntervalSince(willBeginChangingContentTime)
+        print("End: \(difference)")
     }
+    
     
 }

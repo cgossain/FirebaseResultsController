@@ -8,7 +8,6 @@
 
 import Foundation
 import FirebaseDatabase
-import Dwifft
 
 
 public enum FirebaseResultsControllerError: Error {
@@ -20,7 +19,7 @@ public protocol FirebaseResultsControllerDelegate: class {
     func controllerWillChangeContent(_ controller: FirebaseResultsController)
     
     /// Called when the controller has completed processing the all changes.
-    func controllerDidChangeContent(_ controller: FirebaseResultsController)
+    func controllerDidChangeContent(_ controller: FirebaseResultsController, changes: FetchResultDiff)
 }
 
 public class FirebaseResultsController {
@@ -42,13 +41,10 @@ public class FirebaseResultsController {
     public weak var delegate: FirebaseResultsControllerDelegate?
     
     /// The results of the fetch. Returns `nil` if `performFetch()` hasn't yet been called.
-    public var fetchedObjects: [FIRDataSnapshot]? { return currentFetchResult?.results }
+    public var fetchedObjects: [FIRDataSnapshot] { return currentFetchResult.results }
 
     /// The sections for the receiver’s fetch results.
-    public var sections: [Section] { return currentFetchResult?.sections ?? [] }
-    
-    /// The current fetch results state.
-    fileprivate var currentFetchResult: FetchResult?
+    public var sections: [Section] { return currentFetchResult.sections }
     
     // firebase observer handles
     fileprivate var childAddedHandle: FIRDatabaseHandle = 0
@@ -65,6 +61,9 @@ public class FirebaseResultsController {
     
     /// The batching controller for the current fetch request.
     fileprivate var batchingController: BatchingController!
+    
+    /// The current fetch results state.
+    fileprivate var currentFetchResult: FetchResult!
     
     /// A flag that indicates whether the controller has fetched its initial data.
     fileprivate var didFetchInitialData = false
@@ -98,6 +97,9 @@ public class FirebaseResultsController {
         
         // update the active fetch request (specifically the state of the predicate and sort descriptors is what we are interested in here, since the query can't change)
         activeFetchRequest = fetchRequest.copy() as! FirebaseFetchRequest
+        
+        // reset the fetch result
+        currentFetchResult = FetchResult(fetchRequest: activeFetchRequest, sectionNameKeyPath: sectionNameKeyPath)
         
         // attach new observers
         registerQueryObservers()
@@ -209,49 +211,25 @@ extension FirebaseResultsController: BatchingControllerDelegate {
     }
     
     func controller(_ controller: BatchingController, finishedBatchingWithInserted inserted: Set<FIRDataSnapshot>, changed: Set<FIRDataSnapshot>, removed: Set<FIRDataSnapshot>) {
-        var pendingFetchResult: FetchResult!
-        
-        // create the pending results object
-        if let currentFetchResult = currentFetchResult {
-            pendingFetchResult = FetchResult(fetchResult: currentFetchResult)
-        }
-        else {
-            pendingFetchResult = FetchResult(fetchRequest: activeFetchRequest, sectionNameKeyPath: sectionNameKeyPath)
-        }
+        let pendingFetchResult = FetchResult(fetchResult: currentFetchResult)
         
         // apply the changes to the pending results
         pendingFetchResult.apply(inserted: Array(inserted), updated: Array(changed), deleted: Array(removed))
         
-        // list the sections
-        print("\n")
-        print(pendingFetchResult.sectionKeyValues)
-        print(pendingFetchResult.sectionsBySectionKeyValue)
-        print(pendingFetchResult.sections)
-        print("\n")
+//        // list the sections
+//        print("\n")
+//        print(pendingFetchResult.sectionKeyValues)
+//        print(pendingFetchResult.sectionsBySectionKeyValue)
+//        print(pendingFetchResult.sections)
+//        print("\n")
         
-        // compute the diff
-//        if let currentFetchResult = currentFetchResult {
-//            
-//            // compute the section diffs
-//            let sectionsDiff = currentFetchResult.sectionKeyValues.diff(pendingFetchResult.sectionKeyValues)
-//            
-//            // compute the row diffs
-//            let rowsDiff = currentFetchResult.results.diff(pendingFetchResult.results)
-//            
-//        }
-//        else {
-//            // this is the initial fetch, so we should insert all sections
-//            
-//            
-//            
-//            
-//        }
+        let diff = FetchResultDiff(from: currentFetchResult, to: pendingFetchResult)
         
         // apply the new results
         currentFetchResult = pendingFetchResult
         
         // notify the delegate
-        delegate?.controllerDidChangeContent(self)
+        delegate?.controllerDidChangeContent(self, changes: diff)
     }
     
 }
