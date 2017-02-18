@@ -36,7 +36,7 @@ class FetchResult {
         }
         
         // compute the sections array
-        let computed = Array(sectionsBySectionKeyValue.values).sorted(by: { $0.sectionKeyValue > $1.sectionKeyValue })
+        let computed = Array(sectionsBySectionKeyValue.values).sorted(by: { $0.sectionKeyValue < $1.sectionKeyValue })
         _sections = computed
         return computed
     }
@@ -189,14 +189,13 @@ extension FetchResult {
         
         // sort by the sections first
         if let sectionNameKeyPath = sectionNameKeyPath {
-            descriptors.append(NSSortDescriptor(key: sectionNameKeyPath, ascending: false))
+            descriptors.append(NSSortDescriptor(key: sectionNameKeyPath, ascending: true))
         }
         
         // then add the custom sort descriptors
         if let sortDescriptors = fetchRequest.sortDescriptors {
             descriptors.append(contentsOf: sortDescriptors)
         }
-        
         return descriptors
     }
     
