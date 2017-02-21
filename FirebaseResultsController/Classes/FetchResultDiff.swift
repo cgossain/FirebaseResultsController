@@ -53,6 +53,8 @@ struct FetchResultDiff {
         fetchResultBeforeChanges = fromResult
         fetchResultAfterChanges = toResult
         
+        var mutableChangedObjects = changedObjects
+        
         // compute the diff
         let sectionsDiff = fetchResultBeforeChanges.sectionKeyValues.diff(fetchResultAfterChanges.sectionKeyValues)
         let rowsDiff = fetchResultBeforeChanges.results.diff(fetchResultAfterChanges.results)
@@ -171,13 +173,18 @@ struct FetchResultDiff {
             let toPath = IndexPath(row: toRowIdx, section: toSectionIdx)
             
             movedRows.append((from: RowDescriptor(indexPath: fromPath, value: move.from.value), to: RowDescriptor(indexPath: toPath, value: move.to.value)))
+            
+            // remove moved objects from the changed objects list
+            if let idx = mutableChangedObjects.index(of: move.to.value) {
+                mutableChangedObjects.remove(at: idx)
+            }
         }
         self.movedRows = movedRows
         
         
         // get changed rows
         var changedRows: [RowDescriptor] = []
-        for changed in changedObjects {
+        for changed in mutableChangedObjects {
             guard let path = fetchResultBeforeChanges.sections.lookup(snapshot: changed)?.path else {
                 continue
             }

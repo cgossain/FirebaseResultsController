@@ -62,7 +62,7 @@ class ViewController: UITableViewController {
         super.viewDidLoad()
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(ViewController.addButtonTapped(_:)))
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: dateCellIdentifier)
-        resultsController1.performFetch()
+        compoundResultsController.performFetch()
     }
     
     @objc func addButtonTapped(_ sender: UIBarButtonItem) {
@@ -94,27 +94,27 @@ class ViewController: UITableViewController {
     // MARK: - UITableViewDataSource
     
     override func numberOfSections(in tableView: UITableView) -> Int {
-        return resultsController1.sections.count
+        return compoundResultsController.sections.count
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return resultsController1.sections[section].numberOfObjects
+        return compoundResultsController.sections[section].numberOfObjects
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: dateCellIdentifier, for: indexPath)
-        let snapshot = try! resultsController1.object(at: indexPath)
+        let snapshot = try! compoundResultsController.object(at: indexPath)
         configureCell(cell, with: snapshot)
         return cell
     }
     
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        return resultsController1.sections[section].name
+        return compoundResultsController.sections[section].name
     }
     
     override func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]? {
         let delete = UITableViewRowAction(style: .destructive, title: "Delete") { (action, path) in
-            let snapshot = try! self.resultsController1.object(at: indexPath)
+            let snapshot = try! self.compoundResultsController.object(at: indexPath)
             snapshot.ref.removeValue()
         }
         return [delete]
@@ -122,11 +122,11 @@ class ViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         // print the snapshot description
-        let snapshot = try! resultsController1.object(at: indexPath)
+        let snapshot = try! compoundResultsController.object(at: indexPath)
         print("Snapshot: \(snapshot)")
         
         // make sure the controller is spitting back the correct path
-        let path = resultsController1.indexPath(for: snapshot)
+        let path = compoundResultsController.indexPath(for: snapshot)
         print("Controller Path: \(path)")
         
         tableView.deselectRow(at: indexPath, animated: true)
@@ -136,24 +136,11 @@ class ViewController: UITableViewController {
 extension ViewController: CompoundFirebaseResultsControllerDelegate {
     
     func controllerWillChangeContent(_ controller: CompoundFirebaseResultsController) {
-        
-    }
-    
-    func controllerDidChangeContent(_ controller: CompoundFirebaseResultsController) {
-        self.tableView.reloadData()
-    }
-    
-}
-
-extension ViewController: FirebaseResultsControllerDelegate {
-    
-    func controllerWillChangeContent(_ controller: FirebaseResultsController) {
         willBeginChangingContentTime = Date()
-        
         tableView.beginUpdates()
     }
     
-    func controller(_ controller: FirebaseResultsController, didChange sectionInfo: Section, atSectionIndex sectionIndex: Int, for type: FirebaseResultsController.ChangeType) {
+    func controller(_ controller: CompoundFirebaseResultsController, didChange section: Section, atSectionIndex sectionIndex: Int, for type: ResultsChangeType) {
         switch type {
         case .insert:
             self.tableView.insertSections(IndexSet(integer: sectionIndex), with: .fade)
@@ -164,7 +151,47 @@ extension ViewController: FirebaseResultsControllerDelegate {
         }
     }
     
-    func controller(_ controller: FirebaseResultsController, didChange anObject: FIRDataSnapshot, at indexPath: IndexPath?, for type: FirebaseResultsController.ChangeType, newIndexPath: IndexPath?) {
+    func controller(_ controller: CompoundFirebaseResultsController, didChange anObject: FIRDataSnapshot, at indexPath: IndexPath?, for type: ResultsChangeType, newIndexPath: IndexPath?) {
+        switch type {
+        case .insert:
+            tableView.insertRows(at: [newIndexPath!], with: .fade)
+        case .delete:
+            tableView.deleteRows(at: [indexPath!], with: .fade)
+        case .update:
+            configureCell(tableView.cellForRow(at: indexPath!)!, with: anObject)
+        case .move:
+            tableView.moveRow(at: indexPath!, to: newIndexPath!)
+        }
+    }
+    
+    func controllerDidChangeContent(_ controller: CompoundFirebaseResultsController) {
+        let difference = Date().timeIntervalSince(willBeginChangingContentTime)
+        print("End: \(difference)")
+        
+        tableView.endUpdates()
+    }
+    
+}
+
+extension ViewController: FirebaseResultsControllerDelegate {
+    
+    func controllerWillChangeContent(_ controller: FirebaseResultsController) {
+        willBeginChangingContentTime = Date()
+        tableView.beginUpdates()
+    }
+    
+    func controller(_ controller: FirebaseResultsController, didChange section: Section, atSectionIndex sectionIndex: Int, for type: ResultsChangeType) {
+        switch type {
+        case .insert:
+            self.tableView.insertSections(IndexSet(integer: sectionIndex), with: .fade)
+        case .delete:
+            self.tableView.deleteSections(IndexSet(integer: sectionIndex), with: .fade)
+        default:
+            return
+        }
+    }
+    
+    func controller(_ controller: FirebaseResultsController, didChange anObject: FIRDataSnapshot, at indexPath: IndexPath?, for type: ResultsChangeType, newIndexPath: IndexPath?) {
         switch type {
         case .insert:
             tableView.insertRows(at: [newIndexPath!], with: .fade)

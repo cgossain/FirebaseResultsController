@@ -9,6 +9,13 @@
 import Foundation
 import FirebaseDatabase
 
+public enum ResultsChangeType: Int {
+    case insert     = 1
+    case delete     = 2
+    case move       = 3
+    case update     = 4
+}
+
 
 public enum FirebaseResultsControllerError: Error {
     case invalidIndexPath(row: Int, section: Int)
@@ -18,10 +25,10 @@ public enum FirebaseResultsControllerError: Error {
 public protocol FirebaseResultsControllerDelegate: class {
     
     /// Notifies the delegate that a fetched object has been changed due to an add, remove, move, or update.
-    func controller(_ controller: FirebaseResultsController, didChange anObject: FIRDataSnapshot, at indexPath: IndexPath?, for type: FirebaseResultsController.ChangeType, newIndexPath: IndexPath?)
+    func controller(_ controller: FirebaseResultsController, didChange anObject: FIRDataSnapshot, at indexPath: IndexPath?, for type: ResultsChangeType, newIndexPath: IndexPath?)
     
     /// Notifies the delegate of added or removed sections.
-    func controller(_ controller: FirebaseResultsController, didChange sectionInfo: Section, atSectionIndex sectionIndex: Int, for type: FirebaseResultsController.ChangeType)
+    func controller(_ controller: FirebaseResultsController, didChange section: Section, atSectionIndex sectionIndex: Int, for type: ResultsChangeType)
     
     /// Called when the results controller begins receiving changes.
     func controllerWillChangeContent(_ controller: FirebaseResultsController)
@@ -33,13 +40,6 @@ public protocol FirebaseResultsControllerDelegate: class {
 
 
 public class FirebaseResultsController {
-    
-    public enum ChangeType: Int {
-        case insert     = 1
-        case delete     = 2
-        case move       = 3
-        case update     = 4
-    }
     
     /// The FirebaseFetchRequest instance used to do the fetching. The sort descriptor used in the request groups objects into sections.
     public let fetchRequest: FirebaseFetchRequest

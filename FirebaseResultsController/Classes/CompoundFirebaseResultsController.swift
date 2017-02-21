@@ -10,11 +10,19 @@ import Foundation
 import FirebaseDatabase
 
 public protocol CompoundFirebaseResultsControllerDelegate: class {
+    
+    /// Notifies the delegate that a fetched object has been changed due to an add, remove, move, or update.
+    func controller(_ controller: CompoundFirebaseResultsController, didChange anObject: FIRDataSnapshot, at indexPath: IndexPath?, for type: ResultsChangeType, newIndexPath: IndexPath?)
+    
+    /// Notifies the delegate of added or removed sections.
+    func controller(_ controller: CompoundFirebaseResultsController, didChange section: Section, atSectionIndex sectionIndex: Int, for type: ResultsChangeType)
+    
     /// Called when the results controller begins receiving changes.
     func controllerWillChangeContent(_ controller: CompoundFirebaseResultsController)
     
     /// Called when the controller has completed processing the all changes.
     func controllerDidChangeContent(_ controller: CompoundFirebaseResultsController)
+    
 }
 
 /**
@@ -50,7 +58,7 @@ public class CompoundFirebaseResultsController {
         // preform the fetch on each controller
         controllers.forEach {
             $0.performFetch()
-//            $0.delegate = self
+            $0.delegate = self
         }
     }
     
@@ -121,27 +129,48 @@ extension CompoundFirebaseResultsController {
     
 }
 
-//extension CompoundFirebaseResultsController: FirebaseResultsControllerDelegate {
-//    
-//    public func controllerWillChangeContent(_ controller: FirebaseResultsController) {
-//        if changing == 0 {
-//            delegate?.controllerWillChangeContent(self)
-//        }
-//        
-//        // keep track of the number of controllers that are changing
-//        changing += 1
-//    }
-//
-//    public func controllerDidChangeContent(_ controller: FirebaseResultsController, changes: FetchResultDiff) {
-//        if changing > 0 {
-//            changing -= 1
-//        }
-//        
-//        // the compound controller can notify that it has changed its content, if all the controllers have finished changing
-//        if changing == 0 {
-//            delegate?.controllerDidChangeContent(self)
-//        }
-//    }
-//    
-//    
-//}
+extension CompoundFirebaseResultsController: FirebaseResultsControllerDelegate {
+    
+    public func controllerWillChangeContent(_ controller: FirebaseResultsController) {
+        if changing == 0 {
+            delegate?.controllerWillChangeContent(self)
+        }
+        
+        // keep track of the number of controllers that are changing
+        changing += 1
+    }
+    
+    public func controller(_ controller: FirebaseResultsController, didChange section: Section, atSectionIndex sectionIndex: Int, for type: ResultsChangeType) {
+        let sectionOffset = self.sectionOffset(for: controller)
+        delegate?.controller(self, didChange: section, atSectionIndex: (sectionOffset + sectionIndex), for: type)
+    }
+    
+    public func controller(_ controller: FirebaseResultsController, didChange anObject: FIRDataSnapshot, at indexPath: IndexPath?, for type: ResultsChangeType, newIndexPath: IndexPath?) {
+        // translate the `indexPath` if specified
+        var compoundIndexPath: IndexPath?
+        if let path = indexPath {
+            compoundIndexPath = self.compoundIndexPath(for: path, in: controller)
+        }
+        
+        // translate the `newIndexPath` if specified
+        var compoundNewIndexPath: IndexPath?
+        if let path = newIndexPath {
+            compoundNewIndexPath = self.compoundIndexPath(for: path, in: controller)
+        }
+        
+        delegate?.controller(self, didChange: anObject, at: compoundIndexPath, for: type, newIndexPath: compoundNewIndexPath)
+    }
+    
+    public func controllerDidChangeContent(_ controller: FirebaseResultsController) {
+        if changing > 0 {
+            changing -= 1
+        }
+        
+        // the compound controller can notify that it has changed its content, if all the controllers have finished changing
+        if changing == 0 {
+            delegate?.controllerDidChangeContent(self)
+        }
+    }
+    
+    
+}
