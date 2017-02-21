@@ -83,7 +83,7 @@ public struct FetchResultDiff {
         var insertions = rowsDiff.insertions
         var moves: [(from: DiffStep<FIRDataSnapshot>, to: DiffStep<FIRDataSnapshot>)] = []
         
-        // moves will be the diffs that appear both as insertions and deletions
+        // moves will be the diffs that appear both as deletions and insertions
         for deletion in deletions {
             if let insertion = insertions.filter({ $0.value.key == deletion.value.key }).first {
                 moves.append((from: deletion, to: insertion))
@@ -91,14 +91,14 @@ public struct FetchResultDiff {
         }
         
         for move in moves {
-            // remove the insertion portion of the move, from the insertions list
-            if let idx = insertions.index(where: { $0.value.key == move.to.value.key }) {
-                insertions.remove(at: idx)
-            }
-            
-            // remove the deletion portion of the move, from the deletions list
+            // remove the deletions that will be handled in the move
             if let idx = deletions.index(where: { $0.value.key == move.from.value.key }) {
                 deletions.remove(at: idx)
+            }
+            
+            // remove the insertion that will be handled in the move
+            if let idx = insertions.index(where: { $0.value.key == move.to.value.key }) {
+                insertions.remove(at: idx)
             }
         }
         

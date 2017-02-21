@@ -18,15 +18,35 @@ class ViewController: UITableViewController {
     
     var willBeginChangingContentTime = Date()
     
-    lazy var root = FIRDatabase.database().reference().child("dates")
+    lazy var dates1Ref = FIRDatabase.database().reference().child("dates1")
+    lazy var dates2Ref = FIRDatabase.database().reference().child("dates2")
     
-    lazy var resultsController: FirebaseResultsController = {
-        let query = self.root.queryOrderedByKey()
+    lazy var resultsController1: FirebaseResultsController = {
+        let query = self.dates1Ref.queryOrderedByKey()
         
         let fetchRequest = FirebaseFetchRequest(query: query)
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
         
         let controller = FirebaseResultsController(fetchRequest: fetchRequest, sectionNameKeyPath: "category")
+//        controller.delegate = self
+        return controller
+    }()
+    
+    lazy var resultsController2: FirebaseResultsController = {
+        let query = self.dates2Ref.queryOrderedByKey()
+        
+        let fetchRequest = FirebaseFetchRequest(query: query)
+        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
+        
+        let controller = FirebaseResultsController(fetchRequest: fetchRequest, sectionNameKeyPath: "category")
+//        controller.delegate = self
+        return controller
+    }()
+    
+    lazy var compoundResultsController: CompoundFirebaseResultsController = {
+        let controller = CompoundFirebaseResultsController(controllers: [self.resultsController1,
+                                                                         self.resultsController2])
+        
         controller.delegate = self
         return controller
     }()
@@ -42,18 +62,20 @@ class ViewController: UITableViewController {
         super.viewDidLoad()
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(ViewController.addButtonTapped(_:)))
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: dateCellIdentifier)
-        resultsController.performFetch()
-    }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+        compoundResultsController.performFetch()
     }
     
     @objc func addButtonTapped(_ sender: UIBarButtonItem) {
         let date = randomDate()
-        root.childByAutoId().setValue(["date": date.timeIntervalSinceReferenceDate,
-                                       "category": randomCategory()])
+        
+        if arc4random_uniform(2) == 0 {
+            dates1Ref.childByAutoId().setValue(["date": date.timeIntervalSinceReferenceDate,
+                                                "category": Int(arc4random_uniform(4))])
+        }
+        else {
+            dates2Ref.childByAutoId().setValue(["date": date.timeIntervalSinceReferenceDate,
+                                                "category": 10 + Int(arc4random_uniform(4))])
+        }
     }
     
     func randomDate() -> Date {
@@ -63,24 +85,20 @@ class ViewController: UITableViewController {
         return randomDate
     }
     
-    func randomCategory() -> Int {
-        return Int(arc4random_uniform(4))
-    }
-    
     // MARK: - UITableViewDataSource
     
     override func numberOfSections(in tableView: UITableView) -> Int {
-        return resultsController.sections.count
+        return compoundResultsController.sections.count
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return resultsController.sections[section].numberOfObjects
+        return compoundResultsController.sections[section].numberOfObjects
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: dateCellIdentifier, for: indexPath)
         
-        let snapshot = try! resultsController.object(at: indexPath)
+        let snapshot = try! compoundResultsController.object(at: indexPath)
         if let timeInterval = (snapshot.value as? [String: Any])?["date"] as? Double {
             cell.textLabel?.text = dateFormatter.string(from: Date(timeIntervalSinceReferenceDate: timeInterval))
         }
@@ -89,12 +107,12 @@ class ViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        return resultsController.sections[section].name
+        return compoundResultsController.sections[section].name
     }
     
     override func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]? {
         let delete = UITableViewRowAction(style: .destructive, title: "Delete") { (action, path) in
-            let snapshot = try! self.resultsController.object(at: indexPath)
+            let snapshot = try! self.compoundResultsController.object(at: indexPath)
             snapshot.ref.removeValue()
         }
         return [delete]
@@ -102,68 +120,84 @@ class ViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         // print the snapshot description
-        let snapshot = try! resultsController.object(at: indexPath)
+        let snapshot = try! compoundResultsController.object(at: indexPath)
         print("Snapshot: \(snapshot)")
         
         // make sure the controller is spitting back the correct path
-        let path = resultsController.indexPath(for: snapshot)
+        let path = compoundResultsController.indexPath(for: snapshot)
         print("Controller Path: \(path)")
         
         tableView.deselectRow(at: indexPath, animated: true)
     }
 }
 
-extension ViewController: FirebaseResultsControllerDelegate {
+extension ViewController: CompoundFirebaseResultsControllerDelegate {
     
-    func controllerWillChangeContent(_ controller: FirebaseResultsController) {
-        willBeginChangingContentTime = Date()
+    func controllerWillChangeContent(_ controller: CompoundFirebaseResultsController) {
+        
     }
     
-    func controllerDidChangeContent(_ controller: FirebaseResultsController, changes: FetchResultDiff) {
-        if !didFetchInitialData {
-            didFetchInitialData = true
-            
-            tableView.reloadData()
-            
-            return
-        }
-        
-        
-        tableView.beginUpdates()
-        
-        // inserted sections
-        if let inserted = changes.insertedSections {
-            tableView.insertSections(inserted, with: .fade)
-        }
-        
-        // removed sections
-        if let removed = changes.removedSections {
-            tableView.deleteSections(removed, with: .fade)
-        }
-        
-        // inserted rows
-        if let inserted = changes.insertedRows {
-            tableView.insertRows(at: inserted, with: .fade)
-        }
-        
-        // removed rows
-        if let removed = changes.removedRows {
-            tableView.deleteRows(at: removed, with: .fade)
-        }
-        
-        // moved rows
-        if let moved = changes.movedRows {
-            for move in moved {
-                tableView.deleteRows(at: [move.from], with: .fade)
-                tableView.insertRows(at: [move.to], with: .fade)
-            }
-        }
-        
-        tableView.endUpdates()
-        
-        let difference = Date().timeIntervalSince(willBeginChangingContentTime)
-        print("End: \(difference)")
+    func controllerDidChangeContent(_ controller: CompoundFirebaseResultsController) {
+        self.tableView.reloadData()
     }
-    
     
 }
+
+//extension ViewController: FirebaseResultsControllerDelegate {
+//    
+//    func controllerWillChangeContent(_ controller: FirebaseResultsController) {
+//        willBeginChangingContentTime = Date()
+//    }
+//    
+//    func controllerDidChangeContent(_ controller: FirebaseResultsController, changes: FetchResultDiff) {
+//        
+//        
+//        
+//        
+//        if !didFetchInitialData {
+//            didFetchInitialData = true
+//            
+//            tableView.reloadData()
+//            
+//            return
+//        }
+//        
+//        
+//        tableView.beginUpdates()
+//        
+//        // inserted sections
+//        if let inserted = changes.insertedSections {
+//            tableView.insertSections(inserted, with: .fade)
+//        }
+//        
+//        // removed sections
+//        if let removed = changes.removedSections {
+//            tableView.deleteSections(removed, with: .fade)
+//        }
+//        
+//        // inserted rows
+//        if let inserted = changes.insertedRows {
+//            tableView.insertRows(at: inserted, with: .fade)
+//        }
+//        
+//        // removed rows
+//        if let removed = changes.removedRows {
+//            tableView.deleteRows(at: removed, with: .fade)
+//        }
+//        
+//        // moved rows
+//        if let moved = changes.movedRows {
+//            for move in moved {
+//                tableView.deleteRows(at: [move.from], with: .fade)
+//                tableView.insertRows(at: [move.to], with: .fade)
+//            }
+//        }
+//        
+//        tableView.endUpdates()
+//        
+//        let difference = Date().timeIntervalSince(willBeginChangingContentTime)
+//        print("End: \(difference)")
+//    }
+//    
+//    
+//}
