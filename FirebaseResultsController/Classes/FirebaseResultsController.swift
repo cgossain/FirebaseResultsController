@@ -14,13 +14,23 @@ public enum FirebaseResultsControllerError: Error {
     case invalidIndexPath(row: Int, section: Int)
 }
 
+
 public protocol FirebaseResultsControllerDelegate: class {
+    
+    /// Notifies the delegate that a fetched object has been changed due to an add, remove, move, or update.
+    func controller(_ controller: FirebaseResultsController, didChange anObject: FIRDataSnapshot, at indexPath: IndexPath?, for type: FirebaseResultsController.ChangeType, newIndexPath: IndexPath?)
+    
+    /// Notifies the delegate of added or removed sections.
+    func controller(_ controller: FirebaseResultsController, didChange sectionInfo: Section, atSectionIndex sectionIndex: Int, for type: FirebaseResultsController.ChangeType)
+    
     /// Called when the results controller begins receiving changes.
     func controllerWillChangeContent(_ controller: FirebaseResultsController)
     
     /// Called when the controller has completed processing the all changes.
-    func controllerDidChangeContent(_ controller: FirebaseResultsController, changes: FetchResultDiff)
+    func controllerDidChangeContent(_ controller: FirebaseResultsController)
+    
 }
+
 
 public class FirebaseResultsController {
     
@@ -216,20 +226,66 @@ extension FirebaseResultsController: BatchingControllerDelegate {
         // apply the changes to the pending results
         pendingFetchResult.apply(inserted: Array(inserted), updated: Array(changed), deleted: Array(removed))
         
-//        // list the sections
-//        print("\n")
-//        print(pendingFetchResult.sectionKeyValues)
-//        print(pendingFetchResult.sectionsBySectionKeyValue)
-//        print(pendingFetchResult.sections)
-//        print("\n")
-        
         let diff = FetchResultDiff(from: currentFetchResult, to: pendingFetchResult, changedObjects: Array(changed))
         
         // apply the new results
         currentFetchResult = pendingFetchResult
         
+        // notify the delegate about the exact changes
+        notifyDelegateOfChanges(for: diff)
+        
         // notify the delegate
-        delegate?.controllerDidChangeContent(self, changes: diff)
+        delegate?.controllerDidChangeContent(self)
+    }
+    
+}
+
+extension FirebaseResultsController {
+    
+    fileprivate func notifyDelegateOfChanges(for diff: FetchResultDiff) {
+        
+        // changed rows
+        if let changedRows = diff.changedRows {
+            for row in changedRows {
+                delegate?.controller(self, didChange: row.value, at: row.indexPath, for: .update, newIndexPath: nil)
+            }
+        }
+        
+        // removed rows
+        if let removedRows = diff.removedRows {
+            for row in removedRows {
+                delegate?.controller(self, didChange: row.value, at: row.indexPath, for: .delete, newIndexPath: nil)
+            }
+        }
+        
+        // removed sections
+        if let removedSections = diff.removedSections {
+            for section in removedSections {
+                delegate?.controller(self, didChange: section.section, atSectionIndex: section.idx, for: .delete)
+            }
+        }
+        
+        // inserted sections
+        if let insertedSections = diff.insertedSections {
+            for section in insertedSections {
+                delegate?.controller(self, didChange: section.section, atSectionIndex: section.idx, for: .insert)
+            }
+        }
+        
+        // inserted rows
+        if let insertedRows = diff.insertedRows {
+            for row in insertedRows {
+                delegate?.controller(self, didChange: row.value, at: nil, for: .insert, newIndexPath: row.indexPath)
+            }
+        }
+        
+        // moved rows
+        if let movedRows = diff.movedRows {
+            for move in movedRows {
+                delegate?.controller(self, didChange: move.to.value, at: move.from.indexPath, for: .move, newIndexPath: move.to.indexPath)
+            }
+        }
+        
     }
     
 }

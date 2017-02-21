@@ -50,7 +50,7 @@ public class CompoundFirebaseResultsController {
         // preform the fetch on each controller
         controllers.forEach {
             $0.performFetch()
-            $0.delegate = self
+//            $0.delegate = self
         }
     }
     
@@ -121,27 +121,27 @@ extension CompoundFirebaseResultsController {
     
 }
 
-extension CompoundFirebaseResultsController: FirebaseResultsControllerDelegate {
-    
-    public func controllerWillChangeContent(_ controller: FirebaseResultsController) {
-        if changing == 0 {
-            delegate?.controllerWillChangeContent(self)
-        }
-        
-        // keep track of the number of controllers that are changing
-        changing += 1
-    }
-
-    public func controllerDidChangeContent(_ controller: FirebaseResultsController, changes: FetchResultDiff) {
-        if changing > 0 {
-            changing -= 1
-        }
-        
-        // the compound controller can notify that it has changed its content, if all the controllers have finished changing
-        if changing == 0 {
-            delegate?.controllerDidChangeContent(self)
-        }
-    }
-    
-    
-}
+//extension CompoundFirebaseResultsController: FirebaseResultsControllerDelegate {
+//    
+//    public func controllerWillChangeContent(_ controller: FirebaseResultsController) {
+//        if changing == 0 {
+//            delegate?.controllerWillChangeContent(self)
+//        }
+//        
+//        // keep track of the number of controllers that are changing
+//        changing += 1
+//    }
+//
+//    public func controllerDidChangeContent(_ controller: FirebaseResultsController, changes: FetchResultDiff) {
+//        if changing > 0 {
+//            changing -= 1
+//        }
+//        
+//        // the compound controller can notify that it has changed its content, if all the controllers have finished changing
+//        if changing == 0 {
+//            delegate?.controllerDidChangeContent(self)
+//        }
+//    }
+//    
+//    
+//}

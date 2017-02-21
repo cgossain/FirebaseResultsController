@@ -10,8 +10,17 @@ import Foundation
 import FirebaseDatabase
 import Dwifft
 
+struct SectionDescriptor {
+    let idx: Int
+    let section: Section
+}
 
-public struct FetchResultDiff {
+struct RowDescriptor {
+    let indexPath: IndexPath
+    let value: FIRDataSnapshot
+}
+
+struct FetchResultDiff {
     
     /// This would be `nil` on the initial fetch.
     let fetchResultBeforeChanges: FetchResult
@@ -19,36 +28,23 @@ public struct FetchResultDiff {
     /// The fetch result after applying the changes.
     let fetchResultAfterChanges: FetchResult
     
-    /// The inserted items.
-    public fileprivate(set) var insertedObjects: [FIRDataSnapshot]?
-
-    /// The indexes of the inserted sections, relative to the 'before' state, after deletions have been applied.
-    public fileprivate(set) var insertedSections: IndexSet?
-    
-    /// The index paths of the inserted rows, relative to the 'before' state, after deletions have been applied.
-    public fileprivate(set) var insertedRows: [IndexPath]?
-    
-    /// The removed items.
-    public fileprivate(set) var removedObjects: [FIRDataSnapshot]?
-    
     /// The indexes of the removed sections, relative to the 'before' state.
-    public fileprivate(set) var removedSections: IndexSet?
+    fileprivate(set) var removedSections: [SectionDescriptor]?
     
     /// The index paths of the removed rows, relative to the 'before' state.
-    public fileprivate(set) var removedRows: [IndexPath]?
+    fileprivate(set) var removedRows: [RowDescriptor]?
+
+    /// The indexes of the inserted sections, relative to the 'before' state, after deletions have been applied.
+    fileprivate(set) var insertedSections: [SectionDescriptor]?
     
-    /// The moved items.
-    public fileprivate(set) var movedObjects: [FIRDataSnapshot]?
+    /// The index paths of the inserted rows, relative to the 'before' state, after deletions have been applied.
+    fileprivate(set) var insertedRows: [RowDescriptor]?
     
     /// The index paths of the moved rows.
-    public fileprivate(set) var movedRows: [(from: IndexPath, to: IndexPath)]?
+    fileprivate(set) var movedRows: [(from: RowDescriptor, to: RowDescriptor)]?
     
-    /// The changed items.
-    public fileprivate(set) var changedObjects: [FIRDataSnapshot]?
-
     /// The index paths of the changed rows, relative to the 'before' state.
-    public fileprivate(set) var changedRows: [IndexPath]?
-    
+    fileprivate(set) var changedRows: [RowDescriptor]?
     
     // MARK: - Initilization
     
@@ -62,20 +58,20 @@ public struct FetchResultDiff {
         let rowsDiff = fetchResultBeforeChanges.results.diff(fetchResultAfterChanges.results)
         
         
-        // get inserted sections
-        var insertedSections = IndexSet()
-        for inserted in sectionsDiff.insertions {
-            insertedSections.insert(inserted.idx)
-        }
-        self.insertedSections = insertedSections
-        
-        
         // get removed sections
-        var removedSections = IndexSet()
+        var removedSections: [SectionDescriptor] = []
         for removed in sectionsDiff.deletions {
-            removedSections.insert(removed.idx)
+            removedSections.append(SectionDescriptor(idx: removed.idx, section: fetchResultBeforeChanges.sections[removed.idx]))
         }
         self.removedSections = removedSections
+        
+        
+        // get inserted sections
+        var insertedSections: [SectionDescriptor] = []
+        for inserted in sectionsDiff.insertions {
+            insertedSections.append(SectionDescriptor(idx: inserted.idx, section: fetchResultAfterChanges.sections[inserted.idx]))
+        }
+        self.insertedSections = insertedSections
         
         
         // extract the moves from the rows diff
@@ -102,9 +98,9 @@ public struct FetchResultDiff {
             }
         }
         
+        
         // get inserted rows
-        var insertedObjects: [FIRDataSnapshot] = []
-        var insertedRows: [IndexPath] = []
+        var insertedRows: [RowDescriptor] = []
         for inserted in insertions {
             // convert the overall index to the appropriate section
             guard let sectionIdx = fetchResultAfterChanges.sectionIndex(for: inserted.value) else {
@@ -115,19 +111,18 @@ public struct FetchResultDiff {
                 continue
             }
             
-            insertedObjects.append(inserted.value)
-            
             // calculate the index path
             let rowIdx = inserted.idx - sectionOffset
-            insertedRows.append(IndexPath(row: rowIdx, section: sectionIdx))
+            let indexPath = IndexPath(row: rowIdx, section: sectionIdx)
+            
+            // track the insert
+            insertedRows.append(RowDescriptor(indexPath: indexPath, value: inserted.value))
         }
-        self.insertedObjects = insertedObjects
         self.insertedRows = insertedRows
         
         
         // get deleted rows
-        var removedObjects: [FIRDataSnapshot] = []
-        var removedRows: [IndexPath] = []
+        var removedRows: [RowDescriptor] = []
         for removed in deletions {
             // convert the overall index to the appropriate section
             guard let sectionIdx = fetchResultBeforeChanges.sectionIndex(for: removed.value) else {
@@ -138,19 +133,18 @@ public struct FetchResultDiff {
                 continue
             }
             
-            removedObjects.append(removed.value)
-            
             // calculate the index path
             let rowIdx = removed.idx - sectionOffset
-            removedRows.append(IndexPath(row: rowIdx, section: sectionIdx))
+            let indexPath = IndexPath(row: rowIdx, section: sectionIdx)
+            
+            // track the deletion
+            removedRows.append(RowDescriptor(indexPath: indexPath, value: removed.value))
         }
-        self.removedObjects = removedObjects
         self.removedRows = removedRows
         
         
         // get moved rows
-        var movedObjects: [FIRDataSnapshot] = []
-        var movedRows: [(from: IndexPath, to: IndexPath)] = []
+        var movedRows: [(from: RowDescriptor, to: RowDescriptor)] = []
         for move in moves {
             guard let fromSectionIdx = fetchResultBeforeChanges.sectionIndex(for: move.from.value) else {
                 continue
@@ -168,8 +162,6 @@ public struct FetchResultDiff {
                 continue
             }
             
-            movedObjects.append(move.to.value)
-            
             // calculate the `from` index path
             let fromRowIdx = move.from.idx - fromSectionOffset
             let fromPath = IndexPath(row: fromRowIdx, section: fromSectionIdx)
@@ -178,21 +170,20 @@ public struct FetchResultDiff {
             let toRowIdx = move.to.idx - toSectionOffset
             let toPath = IndexPath(row: toRowIdx, section: toSectionIdx)
             
-            movedRows.append((from: fromPath, to: toPath))
+            movedRows.append((from: RowDescriptor(indexPath: fromPath, value: move.from.value), to: RowDescriptor(indexPath: toPath, value: move.to.value)))
         }
-        self.movedObjects = movedObjects
         self.movedRows = movedRows
         
+        
         // get changed rows
-        var changedRows: [IndexPath] = []
+        var changedRows: [RowDescriptor] = []
         for changed in changedObjects {
             guard let path = fetchResultBeforeChanges.sections.lookup(snapshot: changed)?.path else {
                 continue
             }
             
-            changedRows.append(path)
+            changedRows.append(RowDescriptor(indexPath: path, value: changed))
         }
-        self.changedObjects = changedObjects
         self.changedRows = changedRows
     }
     
