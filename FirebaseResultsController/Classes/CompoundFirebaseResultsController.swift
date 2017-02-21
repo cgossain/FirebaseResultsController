@@ -46,8 +46,6 @@ public class CompoundFirebaseResultsController {
     /// Initializes the controller with the specified results controllers.
     public init(controllers: [FirebaseResultsController]) {
         self.controllers = controllers
-        
-        
     }
     
     /**
@@ -171,6 +169,5 @@ extension CompoundFirebaseResultsController: FirebaseResultsControllerDelegate {
             delegate?.controllerDidChangeContent(self)
         }
     }
-    
     
 }
