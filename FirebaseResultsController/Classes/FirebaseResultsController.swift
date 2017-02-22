@@ -289,3 +289,16 @@ extension FirebaseResultsController {
     }
     
 }
+
+extension FirebaseResultsController: Hashable {
+    
+    public static func ==(lhs: FirebaseResultsController, rhs: FirebaseResultsController) -> Bool {
+        return lhs.fetchRequest.query == rhs.fetchRequest.query
+    }
+    
+    public var hashValue: Int {
+        // since the query cannot change this can be used to determine the equality
+        return fetchRequest.query.hashValue
+    }
+    
+}
