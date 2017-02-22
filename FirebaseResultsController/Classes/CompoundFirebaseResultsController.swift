@@ -9,6 +9,11 @@
 import Foundation
 import FirebaseDatabase
 
+public enum CompoundFirebaseResultsControllerError: Error {
+    case invalidSectionIndex(idx: Int)
+}
+
+
 public protocol CompoundFirebaseResultsControllerDelegate: class {
     
     /// Notifies the delegate that a fetched object has been changed due to an add, remove, move, or update.
@@ -72,8 +77,8 @@ public class CompoundFirebaseResultsController {
     ///
     /// - returns: The object at a given index path in the fetch results.
     public func object(at: IndexPath) throws -> FIRDataSnapshot {
-        let controller = self.controller(forSectionIndex: at.section)!
-        let path = self.indexPath(in: controller, fromCompoundIndexPath: at)
+        let controller = try resultsController(forSectionIndex: at.section)
+        let path = indexPath(in: controller, fromCompoundIndexPath: at)
         return try controller.object(at: path)
     }
     
@@ -88,7 +93,7 @@ public class CompoundFirebaseResultsController {
     }
     
     /// Returns the controller that manages the data at the given section index.
-    public func controller(forSectionIndex sectionIndex: Int) -> FirebaseResultsController? {
+    public func resultsController(forSectionIndex sectionIndex: Int) throws -> FirebaseResultsController {
         var sectionOffset = 0
         
         for controller in controllers {
@@ -98,7 +103,8 @@ public class CompoundFirebaseResultsController {
                 return controller
             }
         }
-        return nil
+        
+        throw CompoundFirebaseResultsControllerError.invalidSectionIndex(idx: sectionIndex)
     }
     
 }
