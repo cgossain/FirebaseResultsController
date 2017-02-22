@@ -90,6 +90,10 @@ public class FirebaseResultsController {
         self.sectionNameKeyPath = sectionNameKeyPath
     }
     
+    deinit {
+        unregisterQueryObservers()
+    }
+    
     /**
      Executes the fetch described by the fetch request. You must call this method to start fetching the initial data and to setup the query observers.
      If you change the sort decriptors or predicate on the fetch request, you must call this method to reconfigure the receiver for the updated fetch request.
