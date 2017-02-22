@@ -37,6 +37,9 @@ public class CompoundFirebaseResultsController {
     
     public let controllers: [FirebaseResultsController]
     
+    /// The compound query passed on initialization.
+    public let compoundQuery: CompoundFirebaseQuery?
+    
     /// The object that is notified when the fetched results changed.
     public weak var delegate: CompoundFirebaseResultsControllerDelegate?
     
@@ -46,11 +49,15 @@ public class CompoundFirebaseResultsController {
     /// The current number of controllers currently changing their results.
     fileprivate var changing = 0
     
+    
+    fileprivate var maxChangingCount: Int { return self.controllers.count + (compoundQuery != nil ? 1 : 0) }
+    
     // MARK: - Lifecycle
     
     /// Initializes the controller with the specified results controllers.
-    public init(controllers: [FirebaseResultsController]) {
+    public init(controllers: [FirebaseResultsController], compoundQuery: CompoundFirebaseQuery?) {
         self.controllers = controllers
+        self.compoundQuery = compoundQuery
     }
     
     /**
@@ -58,16 +65,24 @@ public class CompoundFirebaseResultsController {
      If you change the sort decriptors or predicate on the fetch request, you must call this method to reconfigure the receiver for the updated fetch request.
      */
     public func performFetch() {
+        changing = maxChangingCount
+        
         // make sure the delegate if first set on all the controllers
         // this is important becuase we need to have balanced calls to `controllerWillChangeContent`, and `controllerDidChangeContent`
         controllers.forEach {
             $0.delegate = self
         }
         
+        // set the compound query delegate
+        compoundQuery?.delegate = self
+        
         // start the fetch on each controller
         controllers.forEach {
             $0.performFetch()
         }
+        
+        // start the fetch on the compound query
+        compoundQuery?.performFetch()
     }
     
     /// Returns the snapshot at a given indexPath.
@@ -107,6 +122,30 @@ public class CompoundFirebaseResultsController {
         throw CompoundFirebaseResultsControllerError.invalidSectionIndex(idx: sectionIndex)
     }
     
+    // MARK: - Private
+    
+    fileprivate func notifyWillChange() {
+        if changing == 0 || changing == maxChangingCount {
+            delegate?.controllerWillChangeContent(self)
+        }
+        
+        // count down
+        if changing > 0 {
+            changing -= 1
+        }
+        
+//        print("WILL CHANGE: \(changing)")
+    }
+    
+    fileprivate func notifyDidChange() {
+//        print("DID CHANGE: \(changing)")
+        
+        // the compound controller can notify that it has changed its content, if all the controllers have finished changing
+        if changing == 0 {
+            delegate?.controllerDidChangeContent(self)
+        }
+    }
+    
 }
 
 extension CompoundFirebaseResultsController {
@@ -141,12 +180,7 @@ extension CompoundFirebaseResultsController {
 extension CompoundFirebaseResultsController: FirebaseResultsControllerDelegate {
     
     public func controllerWillChangeContent(_ controller: FirebaseResultsController) {
-        if changing == 0 {
-            delegate?.controllerWillChangeContent(self)
-        }
-        
-        // keep track of the number of controllers that are changing
-        changing += 1
+        notifyWillChange()
     }
     
     public func controller(_ controller: FirebaseResultsController, didChange section: Section, atSectionIndex sectionIndex: Int, for type: ResultsChangeType) {
@@ -171,14 +205,19 @@ extension CompoundFirebaseResultsController: FirebaseResultsControllerDelegate {
     }
     
     public func controllerDidChangeContent(_ controller: FirebaseResultsController) {
-        if changing > 0 {
-            changing -= 1
-        }
-        
-        // the compound controller can notify that it has changed its content, if all the controllers have finished changing
-        if changing == 0 {
-            delegate?.controllerDidChangeContent(self)
-        }
+        notifyDidChange()
+    }
+    
+}
+
+extension CompoundFirebaseResultsController: CompoundFirebaseQueryDelegate {
+    
+    public func queryWillChangeContent(_ query: CompoundFirebaseQuery) {
+        notifyWillChange()
+    }
+    
+    public func queryDidChangeContent(_ query: CompoundFirebaseQuery) {
+        notifyDidChange()
     }
     
 }

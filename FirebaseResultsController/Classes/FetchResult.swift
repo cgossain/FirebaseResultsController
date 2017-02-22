@@ -57,22 +57,27 @@ class FetchResult {
     /// - parameters:
     ///   - fetchRequest: The fetch request used to retrieve the results.
     ///   - sectionNameKeyPath: The key path on result objects that represents the section name.
-    init(fetchRequest: FirebaseFetchRequest, sectionNameKeyPath: String?) {
+    ///   - fetchResult: The fetch result whose contents should be added to the receiver.
+    init(fetchRequest: FirebaseFetchRequest, sectionNameKeyPath: String?, fetchResult: FetchResult? = nil) {
         self.fetchRequest = fetchRequest
         self.sectionNameKeyPath = sectionNameKeyPath
+        
+        // configure initial state with the contents of a previous fetch result
+        if let fetchResult = fetchResult {
+            results.append(contentsOf: fetchResult.results)
+            
+            // copy the section objects; we don't want to affect the original fetch results sections when we make changes here
+            var copiedSectionsBySectionKeyValue: [String: Section] = [:]
+            for (sectionKeyValue, section) in fetchResult.sectionsBySectionKeyValue {
+                copiedSectionsBySectionKeyValue[sectionKeyValue] = section.copy() as? Section
+            }
+            sectionsBySectionKeyValue = copiedSectionsBySectionKeyValue
+        }
     }
     
     /// Creates a new FetchResult object, initialized with the contents of an existing FetchResult object.
     convenience init(fetchResult: FetchResult) {
-        self.init(fetchRequest: fetchResult.fetchRequest, sectionNameKeyPath: fetchResult.sectionNameKeyPath)
-        results.append(contentsOf: fetchResult.results)
-        
-        // copy the section objects; we don't want to affect the original fetch results sections when we make changes here
-        var copiedSectionsBySectionKeyValue: [String: Section] = [:]
-        for (sectionKeyValue, section) in fetchResult.sectionsBySectionKeyValue {
-            copiedSectionsBySectionKeyValue[sectionKeyValue] = section.copy() as? Section
-        }
-        sectionsBySectionKeyValue = copiedSectionsBySectionKeyValue
+        self.init(fetchRequest: fetchResult.fetchRequest, sectionNameKeyPath: fetchResult.sectionNameKeyPath, fetchResult: fetchResult)
     }
     
     /// Applies the given changes to the current results.

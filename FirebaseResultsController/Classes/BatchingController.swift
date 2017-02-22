@@ -29,8 +29,10 @@ class BatchingController {
     /// The object that will receive batching updates.
     weak var delegate: BatchingControllerDelegate?
     
+    /// Indicates if the controller is currently batching.
+    fileprivate(set) var isBatching = false
+    
     fileprivate var batchingInterval = 0.35
-    fileprivate var isChanging = false
     fileprivate var batchingTimer: Timer?
     
     // MARK: - Public
@@ -54,7 +56,7 @@ class BatchingController {
     func processBatch() {
         // if the controller is not currently changing (i.e. `processBath` called when there is no active batching), we need to make sure that the calls to "will" and "did" change are balanced
         // so this method will make sure to call `controllerWillBeginBatchingChanges` if needed
-        willChangeIfNeeded()
+        notifyWillBeginBatchingIfNeeded()
         
         var uniqueInserted: [String: FIRDataSnapshot] = [:]
         var uniqueChanged: [String: FIRDataSnapshot] = [:]
@@ -89,7 +91,7 @@ class BatchingController {
         }
         
         // finish the batch
-        isChanging = false
+        isBatching = false
         
         // notify the delegate
         delegate?.controller(self, finishedBatchingWithInserted: Set(uniqueInserted.values), changed: Set(uniqueChanged.values), removed: Set(uniqueRemoved.values))
@@ -100,10 +102,10 @@ class BatchingController {
 extension BatchingController {
     
     /// Calls `controllerWillBeginBatchingChanges` if the controller is not currently changing.
-    fileprivate func willChangeIfNeeded() {
+    fileprivate func notifyWillBeginBatchingIfNeeded() {
         // notify the delegate if we haven't yet for the current batch
-        if !isChanging {
-            isChanging = true
+        if !isBatching {
+            isBatching = true
             
             delegate?.controllerWillBeginBatchingChanges(self)
         }
@@ -111,7 +113,7 @@ extension BatchingController {
     
     fileprivate func batch(inserted: Set<FIRDataSnapshot>?, changed: Set<FIRDataSnapshot>?, removed: Set<FIRDataSnapshot>?) {
         // calls `controllerWillBeginBatchingChanges` if needed
-        willChangeIfNeeded()
+        notifyWillBeginBatchingIfNeeded()
         
         var pendingInserted = [String: FIRDataSnapshot]()
         var pendingChanged = [String: FIRDataSnapshot]()

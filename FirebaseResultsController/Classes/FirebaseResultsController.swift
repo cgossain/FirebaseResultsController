@@ -75,7 +75,7 @@ public class FirebaseResultsController {
     /// The current fetch results state.
     fileprivate var currentFetchResult: FetchResult!
     
-    /// A flag that indicates whether the controller has fetched its initial data.
+    /// A flag that indicates whether the controller has fetched the initial data associated with the current fetch handle (i.e. first fetch after `perfomFetch` is called)
     fileprivate var didFetchInitialData = false
     
     
@@ -109,7 +109,7 @@ public class FirebaseResultsController {
         batchingController = BatchingController()
         batchingController.delegate = self
         
-        // update the active fetch request (specifically the state of the predicate and sort descriptors is what we are interested in here, since the query can't change)
+        // update the active fetch request (specifically, we are interested in captur the state of the predicate and sort descriptors is what we are interested in here, since the query can't change)
         activeFetchRequest = fetchRequest.copy() as! FirebaseFetchRequest
         
         // reset the fetch result
@@ -213,8 +213,7 @@ extension FirebaseResultsController {
 //                }
 //                self.didFetchInitialData = true
                 
-                // force process the initial batch; this ensure the controller fires a `controllerDidChangeContent:` message when there is no data,
-                // but this will also reduce the lag on the initial fetch caused by needing to wait for the batching timer to fire
+                // process the batch as soon as all the data is availabel
                 strongSelf.batchingController.processBatch()
             }
         })
