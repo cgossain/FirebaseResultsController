@@ -83,7 +83,7 @@ struct FetchResultDiff {
         
         // moves will be the diffs that appear both as deletions and insertions
         for deletion in deletions {
-            if let insertion = insertions.filter({ $0.value.key == deletion.value.key }).first {
+            if let insertion = insertions.filter({ $0.value.key == deletion.value.key }).first {                
                 moves.append((from: deletion, to: insertion))
             }
         }
@@ -172,11 +172,14 @@ struct FetchResultDiff {
             let toRowIdx = move.to.idx - toSectionOffset
             let toPath = IndexPath(row: toRowIdx, section: toSectionIdx)
             
-            movedRows.append((from: RowDescriptor(indexPath: fromPath, value: move.from.value), to: RowDescriptor(indexPath: toPath, value: move.to.value)))
-            
-            // remove moved objects from the changed objects list
-            if let idx = mutableChangedObjects.index(of: move.to.value) {
-                mutableChangedObjects.remove(at: idx)
+            // if the index paths have actually changed track this as a move
+            if fromPath != toPath {
+                movedRows.append((from: RowDescriptor(indexPath: fromPath, value: move.from.value), to: RowDescriptor(indexPath: toPath, value: move.to.value)))
+                
+                // remove moved objects from the changed objects list
+                if let idx = mutableChangedObjects.index(of: move.to.value) {
+                    mutableChangedObjects.remove(at: idx)
+                }
             }
         }
         self.movedRows = movedRows
