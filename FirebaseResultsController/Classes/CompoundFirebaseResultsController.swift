@@ -53,10 +53,15 @@ public class CompoundFirebaseResultsController {
      If you change the sort decriptors or predicate on the fetch request, you must call this method to reconfigure the receiver for the updated fetch request.
      */
     public func performFetch() {
-        // preform the fetch on each controller
+        // make sure the delegate if first set on all the controllers
+        // this is important becuase we need to have balanced calls to `controllerWillChangeContent`, and `controllerDidChangeContent`
+        controllers.forEach {
+            $0.delegate = self
+        }
+        
+        // start the fetch on each controller
         controllers.forEach {
             $0.performFetch()
-            $0.delegate = self
         }
     }
     
