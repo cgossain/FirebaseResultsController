@@ -158,32 +158,52 @@ extension FirebaseResultsController {
     fileprivate func registerQueryObservers() {
         let handle = currentFetchHandle
         
-        childAddedHandle = fetchRequest.query.observe(.childAdded, with: { [unowned self] (snapshot) in
-            if handle == self.currentFetchHandle {
-                self.handle(inserted: snapshot)
+        childAddedHandle = fetchRequest.query.observe(.childAdded, with: { [weak self] (snapshot) in
+            guard let strongSelf = self else {
+                return
+            }
+            
+            if handle == strongSelf.currentFetchHandle {
+                strongSelf.handle(inserted: snapshot)
             }
         })
         
-        childChangedHandle = fetchRequest.query.observe(.childChanged, with: { [unowned self] (snapshot) in
-            if handle == self.currentFetchHandle {
-                self.handle(changed: snapshot)
+        childChangedHandle = fetchRequest.query.observe(.childChanged, with: { [weak self] (snapshot) in
+            guard let strongSelf = self else {
+                return
+            }
+            
+            if handle == strongSelf.currentFetchHandle {
+                strongSelf.handle(changed: snapshot)
             }
         })
         
-        childMovedHandle = fetchRequest.query.observe(.childMoved, with: { [unowned self] (snapshot) in
-            if handle == self.currentFetchHandle {
-                self.handle(changed: snapshot)
+        childMovedHandle = fetchRequest.query.observe(.childMoved, with: { [weak self] (snapshot) in
+            guard let strongSelf = self else {
+                return
+            }
+            
+            if handle == strongSelf.currentFetchHandle {
+                strongSelf.handle(changed: snapshot)
             }
         })
         
-        childRemovedHandle = fetchRequest.query.observe(.childRemoved, with: { [unowned self] (snapshot) in
-            if handle == self.currentFetchHandle {
-                self.handle(removed: snapshot)
+        childRemovedHandle = fetchRequest.query.observe(.childRemoved, with: { [weak self] (snapshot) in
+            guard let strongSelf = self else {
+                return
+            }
+            
+            if handle == strongSelf.currentFetchHandle {
+                strongSelf.handle(removed: snapshot)
             }
         })
         
-        valueHandle = fetchRequest.query.observe(.value, with: { [unowned self] (snapshot) in
-            if handle == self.currentFetchHandle {
+        valueHandle = fetchRequest.query.observe(.value, with: { [weak self] (snapshot) in
+            guard let strongSelf = self else {
+                return
+            }
+            
+            if handle == strongSelf.currentFetchHandle {
 //                if self.didFetchInitialData {
 //                    return
 //                }
@@ -191,7 +211,7 @@ extension FirebaseResultsController {
                 
                 // force process the initial batch; this ensure the controller fires a `controllerDidChangeContent:` message when there is no data,
                 // but this will also reduce the lag on the initial fetch caused by needing to wait for the batching timer to fire
-                self.batchingController.processBatch()
+                strongSelf.batchingController.processBatch()
             }
         })
     }
