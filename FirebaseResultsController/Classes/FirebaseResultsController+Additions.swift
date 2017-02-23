@@ -40,20 +40,19 @@ extension Array where Element: FIRDataSnapshot {
     
     /// Returns the index at which you should insert the snapshot in order to maintain a sorted array (according to the given sort descriptors).
     func insertionIndex(of element: Element, using sortDescriptors: [NSSortDescriptor]) -> Int {
-        let idx = self.insertionIndex(of: element, isOrderedBefore: {
-            var result: ComparisonResult = .orderedAscending
-            for descriptor in sortDescriptors {
-                result = descriptor.compare($0.value, to: $1.value)
+        return self.insertionIndex(of: element) {
+            var result: ComparisonResult = .orderedSame
+            for sortDescriptor in sortDescriptors {
+                if let obj1 = $0.value, let obj2 = $1.value {
+                    result = sortDescriptor.compare(obj1, to: obj2)
+                }
                 
                 if result != .orderedSame {
                     break
                 }
             }
-            
-            // if `orderedAscending`, the first element is ordered before the second element
             return (result == .orderedAscending)
-        })
-        return idx
+        }
     }
     
 }
@@ -68,5 +67,19 @@ extension Array where Element: Section {
         }
         return nil
     }
+    
+//    func sorted(by sortDescriptors: [NSSortDescriptor]) -> [Section] {
+//        return self.sorted() {
+//            var result: ComparisonResult = .orderedSame
+//            for sortDescriptor in sortDescriptors {
+//                result = sortDescriptor.compare($0.sectionKeyValue, to: $1.sectionKeyValue)
+//                
+//                if result != .orderedSame {
+//                    break
+//                }
+//            }
+//            return (result == .orderedAscending)
+//        }
+//    }
     
 }
