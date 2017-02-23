@@ -80,7 +80,7 @@ class BatchingController {
             // it's possible that the same snapshot could have been inserted and changed withing the same batching interval
             // we need to detect this case, and reroute the change as an insert
             for (key, value) in changedByRefDescription {
-                if let inserted = insertedByRefDescription[key] {
+                if insertedByRefDescription[key] != nil {
                     // this `changed` version also appears as `inserted`; update the version in the `inserted` list with this newer version
                     uniqueInserted[key] = value
                     

@@ -180,6 +180,7 @@ extension CompoundFirebaseResultsController {
 extension CompoundFirebaseResultsController: FirebaseResultsControllerDelegate {
     
     public func controllerWillChangeContent(_ controller: FirebaseResultsController) {
+//        print("CONTROLLER WILL CHANGE: \(controller.fetchRequest.query)")
         notifyWillChange()
     }
     
@@ -205,6 +206,7 @@ extension CompoundFirebaseResultsController: FirebaseResultsControllerDelegate {
     }
     
     public func controllerDidChangeContent(_ controller: FirebaseResultsController) {
+//        print("CONTROLLER DID CHANGE: \(controller.fetchRequest.query)")
         notifyDidChange()
     }
     
@@ -213,10 +215,12 @@ extension CompoundFirebaseResultsController: FirebaseResultsControllerDelegate {
 extension CompoundFirebaseResultsController: CompoundFirebaseQueryDelegate {
     
     public func queryWillChangeContent(_ query: CompoundFirebaseQuery) {
+//        print("QUERY WILL CHANGE")
         notifyWillChange()
     }
     
     public func queryDidChangeContent(_ query: CompoundFirebaseQuery) {
+//        print("QUERY DID CHANGE")
         notifyDidChange()
     }
     

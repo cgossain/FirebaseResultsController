@@ -213,7 +213,7 @@ extension FirebaseResultsController {
 //                }
 //                self.didFetchInitialData = true
                 
-                // process the batch as soon as all the data is availabel
+                // process the batch as soon as all the data is available
                 strongSelf.batchingController.processBatch()
             }
         })
