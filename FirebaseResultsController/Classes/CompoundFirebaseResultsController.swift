@@ -43,14 +43,15 @@ public class CompoundFirebaseResultsController {
     /// The object that is notified when the fetched results changed.
     public weak var delegate: CompoundFirebaseResultsControllerDelegate?
     
+    /// Indicates whether change tracking notification should be passed to the delegate. Defaults to true.
+    public var changeTrackingEnabled = true
+    
     /// The combined sections of the individual controller fetch results.
     public var sections: [Section] { return controllers.flatMap({ $0.sections }) }
     
     /// The current number of controllers currently changing their results.
     fileprivate var changing = 0
     
-    
-    fileprivate var maxChangingCount: Int { return self.controllers.count + (compoundQuery != nil ? 1 : 0) }
     
     // MARK: - Lifecycle
     
@@ -65,12 +66,11 @@ public class CompoundFirebaseResultsController {
      If you change the sort decriptors or predicate on the fetch request, you must call this method to reconfigure the receiver for the updated fetch request.
      */
     public func performFetch() {
-        changing = maxChangingCount
-        
         // make sure the delegate if first set on all the controllers
         // this is important becuase we need to have balanced calls to `controllerWillChangeContent`, and `controllerDidChangeContent`
         controllers.forEach {
             $0.delegate = self
+            $0.changeTrackingEnabled = self.changeTrackingEnabled
         }
         
         // set the compound query delegate
@@ -125,20 +125,22 @@ public class CompoundFirebaseResultsController {
     // MARK: - Private
     
     fileprivate func notifyWillChange() {
-        if changing == 0 || changing == maxChangingCount {
+        if changing == 0 {
             delegate?.controllerWillChangeContent(self)
         }
         
-        // count down
-        if changing > 0 {
-            changing -= 1
-        }
+        changing += 1
         
 //        print("WILL CHANGE: \(changing)")
     }
     
     fileprivate func notifyDidChange() {
 //        print("DID CHANGE: \(changing)")
+        
+        // count down
+        if changing > 0 {
+            changing -= 1
+        }
         
         // the compound controller can notify that it has changed its content, if all the controllers have finished changing
         if changing == 0 {
@@ -185,11 +187,19 @@ extension CompoundFirebaseResultsController: FirebaseResultsControllerDelegate {
     }
     
     public func controller(_ controller: FirebaseResultsController, didChange section: Section, atSectionIndex sectionIndex: Int, for type: ResultsChangeType) {
+        if !changeTrackingEnabled {
+            return
+        }
+        
         let sectionOffset = self.sectionOffset(for: controller)
         delegate?.controller(self, didChange: section, atSectionIndex: (sectionOffset + sectionIndex), for: type)
     }
     
     public func controller(_ controller: FirebaseResultsController, didChange anObject: FIRDataSnapshot, at indexPath: IndexPath?, for type: ResultsChangeType, newIndexPath: IndexPath?) {
+        if !changeTrackingEnabled {
+            return
+        }
+        
         // translate the `indexPath` if specified
         var compoundIndexPath: IndexPath?
         if let path = indexPath {

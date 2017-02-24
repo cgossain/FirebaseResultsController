@@ -50,6 +50,9 @@ public class FirebaseResultsController {
     /// The object that is notified when the fetched results changed.
     public weak var delegate: FirebaseResultsControllerDelegate?
     
+    /// Indicates whether change tracking notification should be passed to the delegate. Defaults to true.
+    public var changeTrackingEnabled = true
+    
     /// The results of the fetch. Returns `nil` if `performFetch()` hasn't yet been called.
     public var fetchedObjects: [FIRDataSnapshot] { return currentFetchResult.results }
 
@@ -249,13 +252,21 @@ extension FirebaseResultsController: BatchingControllerDelegate {
         // apply the changes to the pending results
         pendingFetchResult.apply(inserted: Array(inserted), updated: Array(changed), deleted: Array(removed))
         
-        let diff = FetchResultDiff(from: currentFetchResult, to: pendingFetchResult, changedObjects: Array(changed))
-        
-        // apply the new results
-        currentFetchResult = pendingFetchResult
-        
-        // notify the delegate about the exact changes
-        notifyDelegateOfChanges(for: diff)
+        // handle diffing if needed
+        if changeTrackingEnabled {
+            // first compute the diff between the current and the new fetch results
+            let diff = FetchResultDiff(from: currentFetchResult, to: pendingFetchResult, changedObjects: Array(changed))
+            
+            // apply the new results
+            currentFetchResult = pendingFetchResult
+            
+            // notify the delegate about the exact changes
+            notifyDelegateOfChanges(for: diff)
+        }
+        else {
+            // apply the new results immediately since we are not diffing
+            currentFetchResult = pendingFetchResult
+        }
         
         // notify the delegate
         delegate?.controllerDidChangeContent(self)
