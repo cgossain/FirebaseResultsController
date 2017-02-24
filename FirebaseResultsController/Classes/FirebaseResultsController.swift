@@ -79,7 +79,7 @@ public class FirebaseResultsController {
     fileprivate var currentFetchResult: FetchResult!
     
     /// A flag that indicates whether the controller has fetched the initial data associated with the current fetch handle (i.e. first fetch after `perfomFetch` is called)
-    fileprivate var didFetchInitialData = false
+    fileprivate var didPerformInitialFetch = false
     
     
     /// Initializes the results controller with the given fetch request and an optional sectionNameKeyPath to section fetched data on.
@@ -111,6 +111,9 @@ public class FirebaseResultsController {
         // create a new batching controller for this fetch
         batchingController = BatchingController()
         batchingController.delegate = self
+        
+        // reset the initial fetch flag
+        didPerformInitialFetch = false
         
         // update the active fetch request (specifically, we are interested in captur the state of the predicate and sort descriptors is what we are interested in here, since the query can't change)
         activeFetchRequest = fetchRequest.copy() as! FirebaseFetchRequest
@@ -211,12 +214,11 @@ extension FirebaseResultsController {
             }
             
             if handle == strongSelf.currentFetchHandle {
-//                if self.didFetchInitialData {
-//                    return
-//                }
-//                self.didFetchInitialData = true
+                if !strongSelf.didPerformInitialFetch {
+                    return  // allow the initial fetch to finish batching
+                }
                 
-                // process the batch as soon as all the data is available
+                // any changes after the initial fetch should be processed immediately (i.e. user deleted a snapshot)
                 strongSelf.batchingController.processBatch()
             }
         })
@@ -247,6 +249,10 @@ extension FirebaseResultsController: BatchingControllerDelegate {
     }
     
     func controller(_ controller: BatchingController, finishedBatchingWithInserted inserted: Set<FIRDataSnapshot>, changed: Set<FIRDataSnapshot>, removed: Set<FIRDataSnapshot>) {
+        // update the initial fetch flag
+        didPerformInitialFetch = true
+        
+        // create a copy of the current fetch results
         let pendingFetchResult = FetchResult(fetchResult: currentFetchResult)
         
         // apply the changes to the pending results
