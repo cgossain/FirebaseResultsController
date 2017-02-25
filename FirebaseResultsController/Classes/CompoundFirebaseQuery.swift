@@ -24,6 +24,13 @@ public class CompoundFirebaseQuery {
     
     public weak var delegate: CompoundFirebaseQueryDelegate?
     
+    /// Set to true if changes should no be batched, but rather processed as soon as they are received.
+    public var processesChangesImmediately = false {
+        didSet {
+            batchingController.processesChangesImmediately = processesChangesImmediately
+        }
+    }
+    
     fileprivate var queriesByIdentifier: [String: FIRDatabaseQuery] = [:]
     
     fileprivate var handlesByIdentifier: [String: FIRDatabaseHandle] = [:]
@@ -33,6 +40,7 @@ public class CompoundFirebaseQuery {
     fileprivate lazy var batchingController: BatchingController = {
         let controller = BatchingController()
         controller.delegate = self
+        controller.processesChangesImmediately = self.processesChangesImmediately
         return controller
     }()
     

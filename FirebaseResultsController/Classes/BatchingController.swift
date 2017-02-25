@@ -29,13 +29,24 @@ class BatchingController {
     /// The object that will receive batching updates.
     weak var delegate: BatchingControllerDelegate?
     
+    /// The time interval (in seconds) to wait for changes to stop before processing the batch.
+    var batchingInterval = 0.3
+    
+    /// Set to true if changes should no be batched, but rather processed as soon as they are received.
+    var processesChangesImmediately = false
+    
     /// Indicates if the controller is currently batching.
     fileprivate(set) var isBatching = false
     
-    fileprivate var batchingInterval = 0.35
+    /// The internal batching timer.
     fileprivate var batchingTimer: Timer?
     
     // MARK: - Public
+    
+    /// Kicks off an empty batch. This triggers the delegate to at least fire once.
+    func notify() {
+        batch(inserted: [], changed: [], removed: [])
+    }
     
     /// Notifies the controller of an inserted snapshot.
     func insert(snapshot: FIRDataSnapshot) {
@@ -161,6 +172,11 @@ extension BatchingController {
         ]
         
         batchingTimer = Timer.scheduledTimer(timeInterval: batchingInterval, target: self, selector: #selector(BatchingController.batchingTimerFired(_:)), userInfo: userInfo, repeats: false)
+        
+        // process the changes immediately if needed
+        if processesChangesImmediately {
+            processBatch()
+        }
     }
     
     @objc fileprivate func batchingTimerFired(_ timer: Timer) {
