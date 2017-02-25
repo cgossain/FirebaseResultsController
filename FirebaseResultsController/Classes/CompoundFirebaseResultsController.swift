@@ -49,8 +49,8 @@ public class CompoundFirebaseResultsController {
     /// The combined sections of the individual controller fetch results.
     public var sections: [Section] { return controllers.flatMap({ $0.sections }) }
     
-    /// The current number of controllers currently changing their results.
-    fileprivate var changing = 0
+    /// The internal batching controller.
+    fileprivate var batchingController: BatchingController!
     
     
     // MARK: - Lifecycle
@@ -66,6 +66,9 @@ public class CompoundFirebaseResultsController {
      If you change the sort decriptors or predicate on the fetch request, you must call this method to reconfigure the receiver for the updated fetch request.
      */
     public func performFetch() {
+        batchingController = BatchingController()
+        batchingController.delegate = self
+        
         // make sure the delegate if first set on all the controllers
         // this is important becuase we need to have balanced calls to `controllerWillChangeContent`, and `controllerDidChangeContent`
         controllers.forEach {
@@ -73,15 +76,14 @@ public class CompoundFirebaseResultsController {
             $0.changeTrackingEnabled = self.changeTrackingEnabled
         }
         
-        // set the compound query delegate
-        compoundQuery?.delegate = self
-        
         // start the fetch on each controller
         controllers.forEach {
             $0.performFetch()
         }
         
         // start the fetch on the compound query
+        compoundQuery?.delegate = self
+        compoundQuery?.processesChangesImmediately = true
         compoundQuery?.performFetch()
     }
     
@@ -125,27 +127,13 @@ public class CompoundFirebaseResultsController {
     // MARK: - Private
     
     fileprivate func notifyWillChange() {
-        if changing == 0 {
+        if !batchingController.isBatching {
             delegate?.controllerWillChangeContent(self)
         }
-        
-        changing += 1
-        
-//        print("WILL CHANGE: \(changing)")
     }
     
     fileprivate func notifyDidChange() {
-//        print("DID CHANGE: \(changing)")
-        
-        // count down
-        if changing > 0 {
-            changing -= 1
-        }
-        
-        // the compound controller can notify that it has changed its content, if all the controllers have finished changing
-        if changing == 0 {
-            delegate?.controllerDidChangeContent(self)
-        }
+        batchingController.notify()
     }
     
 }
@@ -182,7 +170,6 @@ extension CompoundFirebaseResultsController {
 extension CompoundFirebaseResultsController: FirebaseResultsControllerDelegate {
     
     public func controllerWillChangeContent(_ controller: FirebaseResultsController) {
-//        print("CONTROLLER WILL CHANGE: \(controller.fetchRequest.query)")
         notifyWillChange()
     }
     
@@ -216,7 +203,6 @@ extension CompoundFirebaseResultsController: FirebaseResultsControllerDelegate {
     }
     
     public func controllerDidChangeContent(_ controller: FirebaseResultsController) {
-//        print("CONTROLLER DID CHANGE: \(controller.fetchRequest.query)")
         notifyDidChange()
     }
     
@@ -225,13 +211,26 @@ extension CompoundFirebaseResultsController: FirebaseResultsControllerDelegate {
 extension CompoundFirebaseResultsController: CompoundFirebaseQueryDelegate {
     
     public func queryWillChangeContent(_ query: CompoundFirebaseQuery) {
-//        print("QUERY WILL CHANGE")
         notifyWillChange()
     }
     
     public func queryDidChangeContent(_ query: CompoundFirebaseQuery) {
-//        print("QUERY DID CHANGE")
         notifyDidChange()
     }
+    
+}
+
+extension CompoundFirebaseResultsController: BatchingControllerDelegate {
+    
+    func controllerWillBeginBatchingChanges(_ controller: BatchingController) {
+        // ignore
+    }
+    
+    func controller(_ controller: BatchingController, finishedBatchingWithInserted inserted: Set<FIRDataSnapshot>, changed: Set<FIRDataSnapshot>, removed: Set<FIRDataSnapshot>) {
+        
+        // notify delegate
+        delegate?.controllerDidChangeContent(self)
+    }
+    
     
 }
