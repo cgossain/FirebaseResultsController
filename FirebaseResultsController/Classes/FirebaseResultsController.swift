@@ -214,11 +214,11 @@ extension FirebaseResultsController {
             }
             
             if handle == strongSelf.currentFetchHandle {
-                if !strongSelf.didPerformInitialFetch {
-                    return  // allow the initial fetch to finish batching
-                }
+//                if !strongSelf.didPerformInitialFetch {
+//                    return  // allow the initial fetch to finish batching
+//                }
                 
-                // any changes after the initial fetch should be processed immediately (i.e. user deleted a snapshot)
+                // process batch as soon as all the data is available
                 strongSelf.batchingController.processBatch()
             }
         })
@@ -258,11 +258,11 @@ extension FirebaseResultsController: BatchingControllerDelegate {
         // apply the changes to the pending results
         pendingFetchResult.apply(inserted: Array(inserted), updated: Array(changed), deleted: Array(removed))
         
+        // first compute the diff between the current and the new fetch results
+        let diff = FetchResultDiff(from: currentFetchResult, to: pendingFetchResult, changedObjects: Array(changed))
+        
         // handle diffing if needed
         if changeTrackingEnabled {
-            // first compute the diff between the current and the new fetch results
-            let diff = FetchResultDiff(from: currentFetchResult, to: pendingFetchResult, changedObjects: Array(changed))
-            
             // apply the new results
             currentFetchResult = pendingFetchResult
             
