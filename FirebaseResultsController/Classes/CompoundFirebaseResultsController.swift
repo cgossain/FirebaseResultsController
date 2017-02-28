@@ -43,15 +43,32 @@ public class CompoundFirebaseResultsController {
     /// The object that is notified when the fetched results changed.
     public weak var delegate: CompoundFirebaseResultsControllerDelegate?
     
-    /// Indicates whether change tracking notification should be passed to the delegate. Defaults to true.
-    public var changeTrackingEnabled = true
-    
     /// The combined sections of the individual controller fetch results.
     public var sections: [Section] { return controllers.flatMap({ $0.sections }) }
     
-    /// The internal batching controller.
-    fileprivate var batchingController: BatchingController!
+    /// Inidicates if the controller is currently loading content.
+    public var isLoading: Bool {
+        var changing = 0
+        
+        // check the individual controllers
+        for controller in controllers {
+            if controller.state == .loadingContent {
+                changing += 1
+            }
+        }
+        
+        // check the compound query
+        if let compoundQuery = compoundQuery, compoundQuery.state == .loadingContent {
+            changing += 1
+        }
+        
+        return (changing > 0)
+    }
     
+    fileprivate var changing = 0
+    
+    /// Internally used to track diffs by results controller. It's important to only process the diff when all controllers have finished changing.
+    fileprivate var pendingChangesByController: [FirebaseResultsController: FetchResultChanges] = [:]
     
     // MARK: - Lifecycle
     
@@ -66,24 +83,15 @@ public class CompoundFirebaseResultsController {
      If you change the sort decriptors or predicate on the fetch request, you must call this method to reconfigure the receiver for the updated fetch request.
      */
     public func performFetch() {
-        batchingController = BatchingController()
-        batchingController.delegate = self
-        
-        // make sure the delegate if first set on all the controllers
-        // this is important becuase we need to have balanced calls to `controllerWillChangeContent`, and `controllerDidChangeContent`
-        controllers.forEach {
-            $0.delegate = self
-            $0.changeTrackingEnabled = self.changeTrackingEnabled
-        }
-        
         // start the fetch on each controller
         controllers.forEach {
+            $0.delegate = self
+            $0.changeTracker = self
             $0.performFetch()
         }
         
         // start the fetch on the compound query
         compoundQuery?.delegate = self
-        compoundQuery?.processesChangesImmediately = true
         compoundQuery?.performFetch()
     }
     
@@ -124,18 +132,6 @@ public class CompoundFirebaseResultsController {
         throw CompoundFirebaseResultsControllerError.invalidSectionIndex(idx: sectionIndex)
     }
     
-    // MARK: - Private
-    
-    fileprivate func notifyWillChange() {
-        if !batchingController.isBatching {
-            delegate?.controllerWillChangeContent(self)
-        }
-    }
-    
-    fileprivate func notifyDidChange() {
-        batchingController.notify()
-    }
-    
 }
 
 extension CompoundFirebaseResultsController {
@@ -156,7 +152,7 @@ extension CompoundFirebaseResultsController {
     fileprivate func sectionOffset(for resultsController: FirebaseResultsController) -> Int {
         var offset = 0
         for controller in controllers {
-            if resultsController === controller {
+            if resultsController == controller {
                 break
             }
             
@@ -165,45 +161,48 @@ extension CompoundFirebaseResultsController {
         return offset
     }
     
+    fileprivate func notifyWillChangeContent() {
+        print("will change content")
+        if changing == 0 {
+            changing += 1
+            
+            // notify the delegate
+            print("notify will change content")
+            delegate?.controllerWillChangeContent(self)
+        }
+    }
+    
+    fileprivate func notifyDidChangeContent() {
+        print("did change content")
+        if !isLoading {
+            processPendingChanges()
+            
+            print("notify did change content")
+            delegate?.controllerDidChangeContent(self)
+            
+            // drop the count back down to zero
+            changing -= 1
+        }
+    }
+    
 }
 
 extension CompoundFirebaseResultsController: FirebaseResultsControllerDelegate {
     
     public func controllerWillChangeContent(_ controller: FirebaseResultsController) {
-        notifyWillChange()
-    }
-    
-    public func controller(_ controller: FirebaseResultsController, didChange section: Section, atSectionIndex sectionIndex: Int, for type: ResultsChangeType) {
-        if !changeTrackingEnabled {
-            return
-        }
-        
-        let sectionOffset = self.sectionOffset(for: controller)
-        delegate?.controller(self, didChange: section, atSectionIndex: (sectionOffset + sectionIndex), for: type)
-    }
-    
-    public func controller(_ controller: FirebaseResultsController, didChange anObject: FIRDataSnapshot, at indexPath: IndexPath?, for type: ResultsChangeType, newIndexPath: IndexPath?) {
-        if !changeTrackingEnabled {
-            return
-        }
-        
-        // translate the `indexPath` if specified
-        var compoundIndexPath: IndexPath?
-        if let path = indexPath {
-            compoundIndexPath = self.compoundIndexPath(for: path, in: controller)
-        }
-        
-        // translate the `newIndexPath` if specified
-        var compoundNewIndexPath: IndexPath?
-        if let path = newIndexPath {
-            compoundNewIndexPath = self.compoundIndexPath(for: path, in: controller)
-        }
-        
-        delegate?.controller(self, didChange: anObject, at: compoundIndexPath, for: type, newIndexPath: compoundNewIndexPath)
+        notifyWillChangeContent()
     }
     
     public func controllerDidChangeContent(_ controller: FirebaseResultsController) {
-        notifyDidChange()
+        notifyDidChangeContent()
+    }
+    
+}
+
+extension CompoundFirebaseResultsController: FirebaseResultsControllerChangeTracking {
+    
+    public func controller(_ controller: FirebaseResultsController, didChangeContentWith changes: FetchResultChanges) {
+        pendingChangesByController[controller] = changes
     }
     
 }
@@ -211,26 +210,47 @@ extension CompoundFirebaseResultsController: FirebaseResultsControllerDelegate {
 extension CompoundFirebaseResultsController: CompoundFirebaseQueryDelegate {
     
     public func queryWillChangeContent(_ query: CompoundFirebaseQuery) {
-        notifyWillChange()
+        notifyWillChangeContent()
     }
     
     public func queryDidChangeContent(_ query: CompoundFirebaseQuery) {
-        notifyDidChange()
+        notifyDidChangeContent()
     }
     
 }
 
-extension CompoundFirebaseResultsController: BatchingControllerDelegate {
+extension CompoundFirebaseResultsController {
     
-    func controllerWillBeginBatchingChanges(_ controller: BatchingController) {
-        // ignore
-    }
-    
-    func controller(_ controller: BatchingController, finishedBatchingWithInserted inserted: Set<FIRDataSnapshot>, changed: Set<FIRDataSnapshot>, removed: Set<FIRDataSnapshot>) {
+    fileprivate func processPendingChanges() {
+        for (controller, changes) in pendingChangesByController {
+            
+            // apply section changes
+            changes.enumerateSectionChanges { (section, sectionIndex, type) in
+                let sectionOffset = self.sectionOffset(for: controller)
+                delegate?.controller(self, didChange: section, atSectionIndex: (sectionOffset + sectionIndex), for: type)
+            }
+            
+            // apply row changes
+            changes.enumerateRowChanges { (anObject, indexPath, type, newIndexPath) in
+                
+                // translate the `indexPath` if specified
+                var compoundIndexPath: IndexPath?
+                if let path = indexPath {
+                    compoundIndexPath = self.compoundIndexPath(for: path, in: controller)
+                }
+                
+                // translate the `newIndexPath` if specified
+                var compoundNewIndexPath: IndexPath?
+                if let path = newIndexPath {
+                    compoundNewIndexPath = self.compoundIndexPath(for: path, in: controller)
+                }
+                
+                delegate?.controller(self, didChange: anObject, at: compoundIndexPath, for: type, newIndexPath: compoundNewIndexPath)
+            }
+            
+        }
         
-        // notify delegate
-        delegate?.controllerDidChangeContent(self)
+        pendingChangesByController.removeAll()
     }
-    
     
 }

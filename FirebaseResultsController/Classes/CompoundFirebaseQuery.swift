@@ -31,6 +31,9 @@ public class CompoundFirebaseQuery {
         }
     }
     
+    /// The current state of the query.
+    public fileprivate(set) var state: FirebaseResultsController.State = .initial
+    
     fileprivate var queriesByIdentifier: [String: FIRDatabaseQuery] = [:]
     
     fileprivate var handlesByIdentifier: [String: FIRDatabaseHandle] = [:]
@@ -60,6 +63,9 @@ public class CompoundFirebaseQuery {
     /// Begins fetching all added queries. If you add more queries, this method should be called again.
     public func performFetch() {
         unregisterQueryObservers()
+        
+        // update the state
+        state = .loadingContent
         
         // drop all results
         resultsByIdentifier.removeAll()
@@ -106,6 +112,10 @@ extension CompoundFirebaseQuery: BatchingControllerDelegate {
     }
     
     func controller(_ controller: BatchingController, finishedBatchingWithInserted inserted: Set<FIRDataSnapshot>, changed: Set<FIRDataSnapshot>, removed: Set<FIRDataSnapshot>) {
+        // update the state
+        state = .contentLoaded
+        
+        // notify the delegate
         delegate?.queryDidChangeContent(self)
     }
     

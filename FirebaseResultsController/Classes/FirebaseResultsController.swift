@@ -24,12 +24,6 @@ public enum FirebaseResultsControllerError: Error {
 
 public protocol FirebaseResultsControllerDelegate: class {
     
-    /// Notifies the delegate that a fetched object has been changed due to an add, remove, move, or update.
-    func controller(_ controller: FirebaseResultsController, didChange anObject: FIRDataSnapshot, at indexPath: IndexPath?, for type: ResultsChangeType, newIndexPath: IndexPath?)
-    
-    /// Notifies the delegate of added or removed sections.
-    func controller(_ controller: FirebaseResultsController, didChange section: Section, atSectionIndex sectionIndex: Int, for type: ResultsChangeType)
-    
     /// Called when the results controller begins receiving changes.
     func controllerWillChangeContent(_ controller: FirebaseResultsController)
     
@@ -38,8 +32,21 @@ public protocol FirebaseResultsControllerDelegate: class {
     
 }
 
+public protocol FirebaseResultsControllerChangeTracking: class {
+    
+    /// Notifies the change tracker that the controller has finished tracking all changes, and provides the results of the diff.
+    func controller(_ controller: FirebaseResultsController, didChangeContentWith changes: FetchResultChanges)
+    
+}
+
 
 public class FirebaseResultsController {
+    
+    public enum State {
+        case initial
+        case loadingContent
+        case contentLoaded
+    }
     
     /// The FirebaseFetchRequest instance used to do the fetching. The sort descriptor used in the request groups objects into sections.
     public let fetchRequest: FirebaseFetchRequest
@@ -50,14 +57,17 @@ public class FirebaseResultsController {
     /// The object that is notified when the fetched results changed.
     public weak var delegate: FirebaseResultsControllerDelegate?
     
-    /// Indicates whether change tracking notification should be passed to the delegate. Defaults to true.
-    public var changeTrackingEnabled = true
+    /// The object that is notified of the diff results when the receiver's contents are changed.
+    public weak var changeTracker: FirebaseResultsControllerChangeTracking?
     
     /// The results of the fetch. Returns `nil` if `performFetch()` hasn't yet been called.
     public var fetchedObjects: [FIRDataSnapshot] { return currentFetchResult.results }
 
     /// The sections for the receiver’s fetch results.
     public var sections: [Section] { return currentFetchResult.sections }
+    
+    /// The current state of the controller.
+    public fileprivate(set) var state: State = .initial
     
     // firebase observer handles
     fileprivate var childAddedHandle: FIRDatabaseHandle = 0
@@ -77,9 +87,6 @@ public class FirebaseResultsController {
     
     /// The current fetch results state.
     fileprivate var currentFetchResult: FetchResult!
-    
-    /// A flag that indicates whether the controller has fetched the initial data associated with the current fetch handle (i.e. first fetch after `perfomFetch` is called)
-    fileprivate var didPerformInitialFetch = false
     
     
     /// Initializes the results controller with the given fetch request and an optional sectionNameKeyPath to section fetched data on.
@@ -108,12 +115,12 @@ public class FirebaseResultsController {
         // increment the fetch handle
         currentFetchHandle += 1
         
+        // update the state
+        state = .loadingContent
+        
         // create a new batching controller for this fetch
         batchingController = BatchingController()
         batchingController.delegate = self
-        
-        // reset the initial fetch flag
-        didPerformInitialFetch = false
         
         // update the active fetch request (specifically, we are interested in captur the state of the predicate and sort descriptors is what we are interested in here, since the query can't change)
         activeFetchRequest = fetchRequest.copy() as! FirebaseFetchRequest
@@ -214,9 +221,6 @@ extension FirebaseResultsController {
             }
             
             if handle == strongSelf.currentFetchHandle {
-//                if !strongSelf.didPerformInitialFetch {
-//                    return  // allow the initial fetch to finish batching
-//                }
                 
                 // process batch as soon as all the data is available
                 strongSelf.batchingController.processBatch()
@@ -249,8 +253,8 @@ extension FirebaseResultsController: BatchingControllerDelegate {
     }
     
     func controller(_ controller: BatchingController, finishedBatchingWithInserted inserted: Set<FIRDataSnapshot>, changed: Set<FIRDataSnapshot>, removed: Set<FIRDataSnapshot>) {
-        // update the initial fetch flag
-        didPerformInitialFetch = true
+        // update the state
+        state = .contentLoaded
         
         // create a copy of the current fetch results
         let pendingFetchResult = FetchResult(fetchResult: currentFetchResult)
@@ -259,73 +263,16 @@ extension FirebaseResultsController: BatchingControllerDelegate {
         pendingFetchResult.apply(inserted: Array(inserted), updated: Array(changed), deleted: Array(removed))
         
         // first compute the diff between the current and the new fetch results
-        let diff = FetchResultDiff(from: currentFetchResult, to: pendingFetchResult, changedObjects: Array(changed))
+        let diff = FetchResultChanges(from: currentFetchResult, to: pendingFetchResult, changedObjects: Array(changed))
         
-        // handle diffing if needed
-        if changeTrackingEnabled {
-            // apply the new results
-            currentFetchResult = pendingFetchResult
-            
-            // notify the delegate about the exact changes
-            notifyDelegateOfChanges(for: diff)
-        }
-        else {
-            // apply the new results immediately since we are not diffing
-            currentFetchResult = pendingFetchResult
-        }
+        // apply the new results
+        currentFetchResult = pendingFetchResult
+        
+        // notify the change tracker of the diff
+        changeTracker?.controller(self, didChangeContentWith: diff)
         
         // notify the delegate
         delegate?.controllerDidChangeContent(self)
-    }
-    
-}
-
-extension FirebaseResultsController {
-    
-    fileprivate func notifyDelegateOfChanges(for diff: FetchResultDiff) {
-        
-        // changed rows
-        if let changedRows = diff.changedRows {
-            for row in changedRows {
-                delegate?.controller(self, didChange: row.value, at: row.indexPath, for: .update, newIndexPath: nil)
-            }
-        }
-        
-        // removed rows
-        if let removedRows = diff.removedRows {
-            for row in removedRows {
-                delegate?.controller(self, didChange: row.value, at: row.indexPath, for: .delete, newIndexPath: nil)
-            }
-        }
-        
-        // removed sections
-        if let removedSections = diff.removedSections {
-            for section in removedSections {
-                delegate?.controller(self, didChange: section.section, atSectionIndex: section.idx, for: .delete)
-            }
-        }
-        
-        // inserted sections
-        if let insertedSections = diff.insertedSections {
-            for section in insertedSections {
-                delegate?.controller(self, didChange: section.section, atSectionIndex: section.idx, for: .insert)
-            }
-        }
-        
-        // inserted rows
-        if let insertedRows = diff.insertedRows {
-            for row in insertedRows {
-                delegate?.controller(self, didChange: row.value, at: nil, for: .insert, newIndexPath: row.indexPath)
-            }
-        }
-        
-        // moved rows
-        if let movedRows = diff.movedRows {
-            for move in movedRows {
-                delegate?.controller(self, didChange: move.to.value, at: move.from.indexPath, for: .move, newIndexPath: move.to.indexPath)
-            }
-        }
-        
     }
     
 }

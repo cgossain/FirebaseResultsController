@@ -1,5 +1,5 @@
 //
-//  FetchResultDiff.swift
+//  FetchResultChanges.swift
 //  Pods
 //
 //  Created by Christian Gossain on 2017-02-17.
@@ -10,41 +10,42 @@ import Foundation
 import FirebaseDatabase
 import Dwifft
 
-struct SectionDescriptor {
+public struct SectionDescriptor {
     let idx: Int
     let section: Section
 }
 
-struct RowDescriptor {
+public struct RowDescriptor {
     let indexPath: IndexPath
     let value: FIRDataSnapshot
 }
 
-struct FetchResultDiff {
+public struct FetchResultChanges {
     
-    /// This would be `nil` on the initial fetch.
+    /// The fetch result before applying the changes.
     let fetchResultBeforeChanges: FetchResult
     
     /// The fetch result after applying the changes.
     let fetchResultAfterChanges: FetchResult
     
     /// The indexes of the removed sections, relative to the 'before' state.
-    fileprivate(set) var removedSections: [SectionDescriptor]?
+    public fileprivate(set) var removedSections: [SectionDescriptor]?
     
     /// The index paths of the removed rows, relative to the 'before' state.
-    fileprivate(set) var removedRows: [RowDescriptor]?
+    public fileprivate(set) var removedRows: [RowDescriptor]?
 
     /// The indexes of the inserted sections, relative to the 'before' state, after deletions have been applied.
-    fileprivate(set) var insertedSections: [SectionDescriptor]?
+    public fileprivate(set) var insertedSections: [SectionDescriptor]?
     
     /// The index paths of the inserted rows, relative to the 'before' state, after deletions have been applied.
-    fileprivate(set) var insertedRows: [RowDescriptor]?
+    public fileprivate(set) var insertedRows: [RowDescriptor]?
     
     /// The index paths of the moved rows.
-    fileprivate(set) var movedRows: [(from: RowDescriptor, to: RowDescriptor)]?
+    public fileprivate(set) var movedRows: [(from: RowDescriptor, to: RowDescriptor)]?
     
     /// The index paths of the changed rows, relative to the 'before' state.
-    fileprivate(set) var changedRows: [RowDescriptor]?
+    public fileprivate(set) var changedRows: [RowDescriptor]?
+    
     
     // MARK: - Initilization
     
@@ -195,6 +196,60 @@ struct FetchResultDiff {
             changedRows.append(RowDescriptor(indexPath: path, value: changed))
         }
         self.changedRows = changedRows
+    }
+    
+    // MARK: - Public
+    
+    /// Convenience method that enumerates all the section changes described by the receiver.
+    public func enumerateSectionChanges(_ body: ((_ section: Section, _ sectionIndex: Int, _ type: ResultsChangeType) -> Void)) {
+        
+        // removed sections
+        if let removedSections = removedSections {
+            for section in removedSections {
+                body(section.section, section.idx, .delete)
+            }
+        }
+        
+        // inserted sections
+        if let insertedSections = insertedSections {
+            for section in insertedSections {
+                body(section.section, section.idx, .insert)
+            }
+        }
+        
+    }
+    
+    /// Convenience method that enumerates all the row changes described by the receiver.
+    public func enumerateRowChanges(_ body: ((_ anObject: FIRDataSnapshot, _ indexPath: IndexPath?, _ type: ResultsChangeType, _ newIndexPath: IndexPath?) -> Void)) {
+        
+        // changed rows
+        if let changedRows = changedRows {
+            for row in changedRows {
+                body(row.value, row.indexPath, .update, nil)
+            }
+        }
+        
+        // removed rows
+        if let removedRows = removedRows {
+            for row in removedRows {
+                body(row.value, row.indexPath, .delete, nil)
+            }
+        }
+        
+        // inserted rows
+        if let insertedRows = insertedRows {
+            for row in insertedRows {
+                body(row.value, nil, .insert, row.indexPath)
+            }
+        }
+        
+        // moved rows
+        if let movedRows = movedRows {
+            for move in movedRows {
+                body(move.to.value, move.from.indexPath, .move, move.to.indexPath)
+            }
+        }
+        
     }
     
 }
