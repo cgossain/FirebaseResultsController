@@ -1,5 +1,5 @@
 //
-//  CompoundFirebaseQuery.swift
+//  ComposedFirebaseQuery.swift
 //  MooveFit
 //
 //  Created by Christian Gossain on 2017-02-21.
@@ -10,19 +10,20 @@ import Foundation
 import FirebaseDatabase
 
 
-public protocol CompoundFirebaseQueryDelegate: class {
+public protocol ComposedFirebaseQueryDelegate: class {
     
     /// Called when the query will being updating its results due to data being received.
-    func queryWillChangeContent(_ query: CompoundFirebaseQuery)
+    func queryWillChangeContent(_ query: ComposedFirebaseQuery)
     
     /// Called when the query has updated its fetch results.
-    func queryDidChangeContent(_ query: CompoundFirebaseQuery)
+    func queryDidChangeContent(_ query: ComposedFirebaseQuery)
     
 }
 
-public class CompoundFirebaseQuery {
+public class ComposedFirebaseQuery {
     
-    public weak var delegate: CompoundFirebaseQueryDelegate?
+    /// The object that is notified when the query results change.
+    public weak var delegate: ComposedFirebaseQueryDelegate?
     
     /// Set to true if changes should no be batched, but rather processed as soon as they are received.
     public var processesChangesImmediately = false {
@@ -105,7 +106,7 @@ public class CompoundFirebaseQuery {
     
 }
 
-extension CompoundFirebaseQuery: BatchingControllerDelegate {
+extension ComposedFirebaseQuery: BatchingControllerDelegate {
     
     func controllerWillBeginBatchingChanges(_ controller: BatchingController) {
         delegate?.queryWillChangeContent(self)

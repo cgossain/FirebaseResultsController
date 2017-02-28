@@ -15,7 +15,7 @@
 		4E1AC89A88D839DECF5DB892A304DE22 /* Dwifft+UIKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 573E9EF7CA086C3CF3CCF1C336171290 /* Dwifft+UIKit.swift */; };
 		5D3345CDB927248061955D8E29207603 /* FirebaseFetchRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC396AEC81556FF0C8CC14C85F7F6A9C /* FirebaseFetchRequest.swift */; };
 		65EEDDF3EBE363CEA65722C24F938D13 /* BatchingController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8F378A97E536CB98629DD918B0A77C /* BatchingController.swift */; };
-		664E8AB8204CDE278E8CE89B4A724424 /* CompoundFirebaseResultsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35A74E82A65E7A6C7C9AC0B15D68E727 /* CompoundFirebaseResultsController.swift */; };
+		664E8AB8204CDE278E8CE89B4A724424 /* ComposedFirebaseResultsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35A74E82A65E7A6C7C9AC0B15D68E727 /* ComposedFirebaseResultsController.swift */; };
 		6B7B535CBF24FF4B8691ADDB4CF55AFE /* Dwifft.swift in Sources */ = {isa = PBXBuildFile; fileRef = E96EA8535FAB50F204C42C20916F6C6D /* Dwifft.swift */; };
 		7337FB1721275C9FA4FE679D178575E2 /* FirebaseResultsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73577939A5DB0089312018CE0A5E10B1 /* FirebaseResultsController.swift */; };
 		73AFC2711362889B194AE5EC5DDC0A7A /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2FEF51DEEC338CE67F7108E30C08C0AE /* Security.framework */; };
@@ -26,7 +26,7 @@
 		9DFDC359E64C9226A0F3825AF7F94953 /* AdSupport.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2920D890271AA35694F165FD7574590B /* AdSupport.framework */; };
 		A20B11B853DEFA046BC74E5FC682C307 /* Dwifft-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = 637090B84C0F184FBA8039C36916CFF8 /* Dwifft-dummy.m */; };
 		A3B286C722D75A6025943543A80450AC /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 922EB93BAFCCED30D1911766D21F7304 /* StoreKit.framework */; };
-		A9B0E83CF0D05C67517E97E178D6E8EC /* CompoundFirebaseQuery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C18485C1FD5069D93CD0DD63060DAC /* CompoundFirebaseQuery.swift */; };
+		A9B0E83CF0D05C67517E97E178D6E8EC /* ComposedFirebaseQuery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C18485C1FD5069D93CD0DD63060DAC /* ComposedFirebaseQuery.swift */; };
 		AA852D02CDE985A247EF292A902F5F7B /* Dwifft.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 220F47D19707D49AAB6A305EBEE9C4AA /* Dwifft.framework */; };
 		BAAFB7FBC9C105333209DDE5122526A5 /* FirebaseResultsController+Additions.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7C50AFA2AEAE5DEADF775D3B4340B8B /* FirebaseResultsController+Additions.swift */; };
 		C8CFACB1A8E08CF0CAEEB228D3073FDD /* Pods-FirebaseResultsController_Tests-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = 6A0CC26BDDD8D14E31CBD33346F0294A /* Pods-FirebaseResultsController_Tests-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -78,7 +78,7 @@
 		2FEF51DEEC338CE67F7108E30C08C0AE /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS10.0.sdk/System/Library/Frameworks/Security.framework; sourceTree = DEVELOPER_DIR; };
 		31A593E9D3AC88A414A675AFBB4B2B3C /* FirebaseResultsController.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = FirebaseResultsController.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3409BBD8CB62EC0C11E270E346B993F5 /* Pods-FirebaseResultsController_Tests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-FirebaseResultsController_Tests.release.xcconfig"; sourceTree = "<group>"; };
-		35A74E82A65E7A6C7C9AC0B15D68E727 /* CompoundFirebaseResultsController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CompoundFirebaseResultsController.swift; sourceTree = "<group>"; };
+		35A74E82A65E7A6C7C9AC0B15D68E727 /* ComposedFirebaseResultsController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ComposedFirebaseResultsController.swift; sourceTree = "<group>"; };
 		3FBCAF4E472FA7AB825BB7D08041BB6C /* SafariServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SafariServices.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS10.0.sdk/System/Library/Frameworks/SafariServices.framework; sourceTree = DEVELOPER_DIR; };
 		48F48483493D4AC27D53EE7DFBF9B691 /* Pods-FirebaseResultsController_Example-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "Pods-FirebaseResultsController_Example-dummy.m"; sourceTree = "<group>"; };
 		4A722E0565CB6D0382C715FFBAD25EB8 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS10.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
@@ -106,7 +106,7 @@
 		9214092E9C85FB304D508D56D2D7B2F2 /* FirebaseResultsController.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = "sourcecode.module-map"; path = FirebaseResultsController.modulemap; sourceTree = "<group>"; };
 		922EB93BAFCCED30D1911766D21F7304 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS10.0.sdk/System/Library/Frameworks/StoreKit.framework; sourceTree = DEVELOPER_DIR; };
 		93A4A3777CF96A4AAC1D13BA6DCCEA73 /* Podfile */ = {isa = PBXFileReference; explicitFileType = text.script.ruby; includeInIndex = 1; name = Podfile; path = ../Podfile; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
-		96C18485C1FD5069D93CD0DD63060DAC /* CompoundFirebaseQuery.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CompoundFirebaseQuery.swift; sourceTree = "<group>"; };
+		96C18485C1FD5069D93CD0DD63060DAC /* ComposedFirebaseQuery.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ComposedFirebaseQuery.swift; sourceTree = "<group>"; };
 		9B495AD88051FD57B20EC0423621F13B /* Pods-FirebaseResultsController_Tests-acknowledgements.markdown */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = "Pods-FirebaseResultsController_Tests-acknowledgements.markdown"; sourceTree = "<group>"; };
 		9F7C6A4219D97A8965185487A4701021 /* FetchResultChanges.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FetchResultChanges.swift; sourceTree = "<group>"; };
 		A709790AC453B2362FB5CAFF6B29D35A /* FirebaseResultsController.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = FirebaseResultsController.xcconfig; sourceTree = "<group>"; };
@@ -282,8 +282,8 @@
 			isa = PBXGroup;
 			children = (
 				2B8F378A97E536CB98629DD918B0A77C /* BatchingController.swift */,
-				96C18485C1FD5069D93CD0DD63060DAC /* CompoundFirebaseQuery.swift */,
-				35A74E82A65E7A6C7C9AC0B15D68E727 /* CompoundFirebaseResultsController.swift */,
+				96C18485C1FD5069D93CD0DD63060DAC /* ComposedFirebaseQuery.swift */,
+				35A74E82A65E7A6C7C9AC0B15D68E727 /* ComposedFirebaseResultsController.swift */,
 				5EECA89A7C415B61B2607B98545903E1 /* FetchResult.swift */,
 				9F7C6A4219D97A8965185487A4701021 /* FetchResultChanges.swift */,
 				BC396AEC81556FF0C8CC14C85F7F6A9C /* FirebaseFetchRequest.swift */,
@@ -540,8 +540,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				65EEDDF3EBE363CEA65722C24F938D13 /* BatchingController.swift in Sources */,
-				A9B0E83CF0D05C67517E97E178D6E8EC /* CompoundFirebaseQuery.swift in Sources */,
-				664E8AB8204CDE278E8CE89B4A724424 /* CompoundFirebaseResultsController.swift in Sources */,
+				A9B0E83CF0D05C67517E97E178D6E8EC /* ComposedFirebaseQuery.swift in Sources */,
+				664E8AB8204CDE278E8CE89B4A724424 /* ComposedFirebaseResultsController.swift in Sources */,
 				EE92D53070AA7B5E89DB5944BA548715 /* FetchResult.swift in Sources */,
 				1223E0489DCB775484BA002B36A42868 /* FetchResultChanges.swift in Sources */,
 				5D3345CDB927248061955D8E29207603 /* FirebaseFetchRequest.swift in Sources */,

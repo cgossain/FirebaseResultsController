@@ -1,5 +1,5 @@
 //
-//  CompoundFirebaseResultsController.swift
+//  ComposedFirebaseResultsController.swift
 //  Pods
 //
 //  Created by Christian Gossain on 2017-02-20.
@@ -9,39 +9,39 @@
 import Foundation
 import FirebaseDatabase
 
-public enum CompoundFirebaseResultsControllerError: Error {
+public enum ComposedFirebaseResultsControllerError: Error {
     case invalidSectionIndex(idx: Int)
 }
 
 
-public protocol CompoundFirebaseResultsControllerDelegate: class {
+public protocol ComposedFirebaseResultsControllerDelegate: class {
     
     /// Notifies the delegate that a fetched object has been changed due to an add, remove, move, or update.
-    func controller(_ controller: CompoundFirebaseResultsController, didChange anObject: FIRDataSnapshot, at indexPath: IndexPath?, for type: ResultsChangeType, newIndexPath: IndexPath?)
+    func controller(_ controller: ComposedFirebaseResultsController, didChange anObject: FIRDataSnapshot, at indexPath: IndexPath?, for type: ResultsChangeType, newIndexPath: IndexPath?)
     
     /// Notifies the delegate of added or removed sections.
-    func controller(_ controller: CompoundFirebaseResultsController, didChange section: Section, atSectionIndex sectionIndex: Int, for type: ResultsChangeType)
+    func controller(_ controller: ComposedFirebaseResultsController, didChange section: Section, atSectionIndex sectionIndex: Int, for type: ResultsChangeType)
     
     /// Called when the results controller begins receiving changes.
-    func controllerWillChangeContent(_ controller: CompoundFirebaseResultsController)
+    func controllerWillChangeContent(_ controller: ComposedFirebaseResultsController)
     
     /// Called when the controller has completed processing the all changes.
-    func controllerDidChangeContent(_ controller: CompoundFirebaseResultsController)
+    func controllerDidChangeContent(_ controller: ComposedFirebaseResultsController)
     
 }
 
 /**
  Combines the results from individual results controllers into a single controller.
  */
-public class CompoundFirebaseResultsController {
+public class ComposedFirebaseResultsController {
     
     public let controllers: [FirebaseResultsController]
     
-    /// The compound query passed on initialization.
-    public let compoundQuery: CompoundFirebaseQuery?
+    /// The composed query passed on initialization.
+    public let composedQuery: ComposedFirebaseQuery?
     
-    /// The object that is notified when the fetched results changed.
-    public weak var delegate: CompoundFirebaseResultsControllerDelegate?
+    /// The object that is notified when the fetched results change.
+    public weak var delegate: ComposedFirebaseResultsControllerDelegate?
     
     /// The combined sections of the individual controller fetch results.
     public var sections: [Section] { return controllers.flatMap({ $0.sections }) }
@@ -57,8 +57,8 @@ public class CompoundFirebaseResultsController {
             }
         }
         
-        // check the compound query
-        if let compoundQuery = compoundQuery, compoundQuery.state == .loadingContent {
+        // check the composed query
+        if let composedQuery = composedQuery, composedQuery.state == .loadingContent {
             changing += 1
         }
         
@@ -73,9 +73,9 @@ public class CompoundFirebaseResultsController {
     // MARK: - Lifecycle
     
     /// Initializes the controller with the specified results controllers.
-    public init(controllers: [FirebaseResultsController], compoundQuery: CompoundFirebaseQuery?) {
+    public init(controllers: [FirebaseResultsController], composedQuery: ComposedFirebaseQuery?) {
         self.controllers = controllers
-        self.compoundQuery = compoundQuery
+        self.composedQuery = composedQuery
     }
     
     /**
@@ -90,9 +90,9 @@ public class CompoundFirebaseResultsController {
             $0.performFetch()
         }
         
-        // start the fetch on the compound query
-        compoundQuery?.delegate = self
-        compoundQuery?.performFetch()
+        // start the fetch on the composed query
+        composedQuery?.delegate = self
+        composedQuery?.performFetch()
     }
     
     /// Returns the snapshot at a given indexPath.
@@ -129,12 +129,12 @@ public class CompoundFirebaseResultsController {
             }
         }
         
-        throw CompoundFirebaseResultsControllerError.invalidSectionIndex(idx: sectionIndex)
+        throw ComposedFirebaseResultsControllerError.invalidSectionIndex(idx: sectionIndex)
     }
     
 }
 
-extension CompoundFirebaseResultsController {
+extension ComposedFirebaseResultsController {
     
     /// Returns the index path in the overall results, from an index path within a given results controller.
     fileprivate func compoundIndexPath(for path: IndexPath, in controller: FirebaseResultsController) -> IndexPath {
@@ -187,7 +187,7 @@ extension CompoundFirebaseResultsController {
     
 }
 
-extension CompoundFirebaseResultsController: FirebaseResultsControllerDelegate {
+extension ComposedFirebaseResultsController: FirebaseResultsControllerDelegate {
     
     public func controllerWillChangeContent(_ controller: FirebaseResultsController) {
         notifyWillChangeContent()
@@ -199,7 +199,7 @@ extension CompoundFirebaseResultsController: FirebaseResultsControllerDelegate {
     
 }
 
-extension CompoundFirebaseResultsController: FirebaseResultsControllerChangeTracking {
+extension ComposedFirebaseResultsController: FirebaseResultsControllerChangeTracking {
     
     public func controller(_ controller: FirebaseResultsController, didChangeContentWith changes: FetchResultChanges) {
         pendingChangesByController[controller] = changes
@@ -207,19 +207,19 @@ extension CompoundFirebaseResultsController: FirebaseResultsControllerChangeTrac
     
 }
 
-extension CompoundFirebaseResultsController: CompoundFirebaseQueryDelegate {
+extension ComposedFirebaseResultsController: ComposedFirebaseQueryDelegate {
     
-    public func queryWillChangeContent(_ query: CompoundFirebaseQuery) {
+    public func queryWillChangeContent(_ query: ComposedFirebaseQuery) {
         notifyWillChangeContent()
     }
     
-    public func queryDidChangeContent(_ query: CompoundFirebaseQuery) {
+    public func queryDidChangeContent(_ query: ComposedFirebaseQuery) {
         notifyDidChangeContent()
     }
     
 }
 
-extension CompoundFirebaseResultsController {
+extension ComposedFirebaseResultsController {
     
     fileprivate func processPendingChanges() {
         for (controller, changes) in pendingChangesByController {

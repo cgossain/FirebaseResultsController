@@ -45,9 +45,9 @@ class ViewController: UITableViewController {
         return controller
     }()
     
-    lazy var compoundResultsController: CompoundFirebaseResultsController = {
-        let controller = CompoundFirebaseResultsController(controllers: [self.resultsController1,
-                                                                         self.resultsController2], compoundQuery: nil)
+    lazy var compoundResultsController: ComposedFirebaseResultsController = {
+        let controller = ComposedFirebaseResultsController(controllers: [self.resultsController1,
+                                                                         self.resultsController2], composedQuery: nil)
         
         controller.delegate = self
         return controller
@@ -135,14 +135,14 @@ class ViewController: UITableViewController {
     }
 }
 
-extension ViewController: CompoundFirebaseResultsControllerDelegate {
+extension ViewController: ComposedFirebaseResultsControllerDelegate {
     
-    func controllerWillChangeContent(_ controller: CompoundFirebaseResultsController) {
+    func controllerWillChangeContent(_ controller: ComposedFirebaseResultsController) {
         willBeginChangingContentTime = Date()
         tableView.beginUpdates()
     }
     
-    func controller(_ controller: CompoundFirebaseResultsController, didChange section: Section, atSectionIndex sectionIndex: Int, for type: ResultsChangeType) {
+    func controller(_ controller: ComposedFirebaseResultsController, didChange section: Section, atSectionIndex sectionIndex: Int, for type: ResultsChangeType) {
         switch type {
         case .insert:
             self.tableView.insertSections(IndexSet(integer: sectionIndex), with: .fade)
@@ -153,7 +153,7 @@ extension ViewController: CompoundFirebaseResultsControllerDelegate {
         }
     }
     
-    func controller(_ controller: CompoundFirebaseResultsController, didChange anObject: FIRDataSnapshot, at indexPath: IndexPath?, for type: ResultsChangeType, newIndexPath: IndexPath?) {
+    func controller(_ controller: ComposedFirebaseResultsController, didChange anObject: FIRDataSnapshot, at indexPath: IndexPath?, for type: ResultsChangeType, newIndexPath: IndexPath?) {
         switch type {
         case .insert:
             tableView.insertRows(at: [newIndexPath!], with: .fade)
@@ -168,7 +168,7 @@ extension ViewController: CompoundFirebaseResultsControllerDelegate {
         }
     }
     
-    func controllerDidChangeContent(_ controller: CompoundFirebaseResultsController) {
+    func controllerDidChangeContent(_ controller: ComposedFirebaseResultsController) {
         let difference = Date().timeIntervalSince(willBeginChangingContentTime)
         print("End: \(difference)")
         

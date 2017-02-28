@@ -54,7 +54,7 @@ public class FirebaseResultsController {
     /// The keyPath on the fetched objects used to determine the section they belong to.
     public let sectionNameKeyPath: String?
     
-    /// The object that is notified when the fetched results changed.
+    /// The object that is notified when the fetched results change.
     public weak var delegate: FirebaseResultsControllerDelegate?
     
     /// The object that is notified of the diff results when the receiver's contents are changed.
