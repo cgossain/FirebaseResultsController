@@ -65,8 +65,6 @@ public class ComposedFirebaseResultsController {
         return (changing > 0)
     }
     
-    fileprivate var changing = 0
-    
     /// Internally used to track diffs by results controller. It's important to only process the diff when all controllers have finished changing.
     fileprivate var pendingChangesByController: [FirebaseResultsController: FetchResultChanges] = [:]
     
@@ -163,25 +161,21 @@ extension ComposedFirebaseResultsController {
     
     fileprivate func notifyWillChangeContent() {
         print("will change content")
-        if changing == 0 {
-            changing += 1
-            
-            // notify the delegate
-            print("notify will change content")
-            delegate?.controllerWillChangeContent(self)
-        }
     }
     
     fileprivate func notifyDidChangeContent() {
         print("did change content")
         if !isLoading {
+            // notify the delegate
+            print("\tnotify will change content")
+            delegate?.controllerWillChangeContent(self)
+            
+            // process diffs
             processPendingChanges()
             
-            print("notify did change content")
+            // notify the delegate
+            print("\tnotify did change content")
             delegate?.controllerDidChangeContent(self)
-            
-            // drop the count back down to zero
-            changing -= 1
         }
     }
     
