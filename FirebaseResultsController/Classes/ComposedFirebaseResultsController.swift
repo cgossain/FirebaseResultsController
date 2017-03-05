@@ -82,10 +82,10 @@ public class ComposedFirebaseResultsController {
      */
     public func performFetch() {
         // start the fetch on each controller
-        controllers.forEach {
-            $0.delegate = self
-            $0.changeTracker = self
-            $0.performFetch()
+        for controller in controllers {
+            controller.delegate = self
+            controller.changeTracker = self
+            controller.performFetch()
         }
         
         // start the fetch on the composed query
