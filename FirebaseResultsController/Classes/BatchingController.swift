@@ -74,31 +74,34 @@ class BatchingController {
         var uniqueRemoved: [String: FIRDataSnapshot] = [:]
         
         // extract the data from the active timer
-        if let timer = batchingTimer, let batch = timer.userInfo as? [String: [String: FIRDataSnapshot]] {
-            timer.invalidate()
-            batchingTimer = nil;
-            
-            // extract changes from user info
-            let insertedByRefDescription = batch[BatchingControllerInsertedKey] ?? [String: FIRDataSnapshot]()
-            let changedByRefDescription = batch[BatchingControllerChangedKey] ?? [String: FIRDataSnapshot]()
-            let removedByRefDescription = batch[BatchingControllerRemovedKey] ?? [String: FIRDataSnapshot]()
-            
-            // group into unique changes
-            uniqueInserted = insertedByRefDescription
-            uniqueChanged = changedByRefDescription
-            uniqueRemoved = removedByRefDescription
-            
-            // it's possible that the same snapshot could have been inserted and changed withing the same batching interval
-            // we need to detect this case, and reroute the change as an insert
-            for (key, value) in changedByRefDescription {
-                if insertedByRefDescription[key] != nil {
-                    // this `changed` version also appears as `inserted`; update the version in the `inserted` list with this newer version
-                    uniqueInserted[key] = value
-                    
-                    // remove this object from the `changed` list since, taken from the perspective of the entire batch, it was effectively inserted
-                    uniqueChanged[key] = nil
+        if let timer = batchingTimer {
+            // extract and deduplicate changes container in the userInfo
+            if let batch = timer.userInfo as? [String: [String: FIRDataSnapshot]] {
+                let insertedByRefDescription = batch[BatchingControllerInsertedKey] ?? [String: FIRDataSnapshot]()
+                let changedByRefDescription = batch[BatchingControllerChangedKey] ?? [String: FIRDataSnapshot]()
+                let removedByRefDescription = batch[BatchingControllerRemovedKey] ?? [String: FIRDataSnapshot]()
+                
+                // group into unique changes
+                uniqueInserted = insertedByRefDescription
+                uniqueChanged = changedByRefDescription
+                uniqueRemoved = removedByRefDescription
+                
+                // it's possible that the same snapshot could have been inserted and changed withing the same batching interval
+                // we need to detect this case, and reroute the change as an insert
+                for (key, value) in changedByRefDescription {
+                    if insertedByRefDescription[key] != nil {
+                        // this `changed` version also appears as `inserted`; update the version in the `inserted` list with this newer version
+                        uniqueInserted[key] = value
+                        
+                        // remove this object from the `changed` list since, taken from the perspective of the entire batch, it was effectively inserted
+                        uniqueChanged[key] = nil
+                    }
                 }
             }
+            
+            // cleanup the timer
+            timer.invalidate()
+            batchingTimer = nil;
         }
         
         // finish the batch

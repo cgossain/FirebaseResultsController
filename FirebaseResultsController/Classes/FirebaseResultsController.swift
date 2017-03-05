@@ -79,9 +79,6 @@ public class FirebaseResultsController {
     /// A value that associates a call to `performFetch` with the data returned for that fetch.
     fileprivate var currentFetchHandle = 0
     
-    /// A copy of the fetch request at the time performFetch() was called. Since the fetch request can be changed externally, we need to store a copy that represents the current fetch.
-    fileprivate var activeFetchRequest: FirebaseFetchRequest!
-    
     /// The batching controller for the current fetch request.
     fileprivate var batchingController: BatchingController!
     
@@ -122,8 +119,8 @@ public class FirebaseResultsController {
         batchingController = BatchingController()
         batchingController.delegate = self
         
-        // update the active fetch request (specifically, we are interested in captur the state of the predicate and sort descriptors is what we are interested in here, since the query can't change)
-        activeFetchRequest = fetchRequest.copy() as! FirebaseFetchRequest
+        // update the active fetch request (specifically, we are interested in capture the state of the predicate and sort descriptors is what we are interested in here, since the query can't change)
+        let activeFetchRequest = fetchRequest.copy() as! FirebaseFetchRequest
         
         // reset the fetch result
         currentFetchResult = FetchResult(fetchRequest: activeFetchRequest, sectionNameKeyPath: sectionNameKeyPath)
