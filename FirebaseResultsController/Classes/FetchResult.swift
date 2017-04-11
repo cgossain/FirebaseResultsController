@@ -192,7 +192,7 @@ extension FetchResult {
         
         // insert the updated version of the snapshot
         insert(snapshot: new)
-    }
+    } 
     
 }
 
@@ -233,7 +233,7 @@ extension FIRDataSnapshot {
     
     /// Extracts the section key value for the given key path.
     func sectionKeyValue(forSectionNameKeyPath sectionNameKeyPath: String?) -> String {
-        if let sectionNameKeyPath = sectionNameKeyPath, let obj = self.value as? AnyObject, let value = obj.value(forKeyPath: sectionNameKeyPath) as? AnyObject {
+        if let sectionNameKeyPath = sectionNameKeyPath, let obj = self.value, let value = (obj as AnyObject).value(forKeyPath: sectionNameKeyPath) {
             return String(describing: value)
         }
         return FetchResultNilSectionName
