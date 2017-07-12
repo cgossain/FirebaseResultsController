@@ -17,7 +17,7 @@ public enum ComposedFirebaseResultsControllerError: Error {
 public protocol ComposedFirebaseResultsControllerDelegate: class {
     
     /// Notifies the delegate that a fetched object has been changed due to an add, remove, move, or update.
-    func controller(_ controller: ComposedFirebaseResultsController, didChange anObject: FIRDataSnapshot, at indexPath: IndexPath?, for type: ResultsChangeType, newIndexPath: IndexPath?)
+    func controller(_ controller: ComposedFirebaseResultsController, didChange anObject: DataSnapshot, at indexPath: IndexPath?, for type: ResultsChangeType, newIndexPath: IndexPath?)
     
     /// Notifies the delegate of added or removed sections.
     func controller(_ controller: ComposedFirebaseResultsController, didChange section: Section, atSectionIndex sectionIndex: Int, for type: ResultsChangeType)
@@ -99,7 +99,7 @@ public class ComposedFirebaseResultsController {
     ///     - at: An index path in the fetch results. If indexPath does not describe a valid index path in the fetch results, an error is thrown.
     ///
     /// - returns: The object at a given index path in the fetch results.
-    public func object(at: IndexPath) throws -> FIRDataSnapshot {
+    public func object(at: IndexPath) throws -> DataSnapshot {
         let controller = try resultsController(forSectionIndex: at.section)
         let path = indexPath(in: controller, fromCompoundIndexPath: at)
         return try controller.object(at: path)
@@ -111,7 +111,7 @@ public class ComposedFirebaseResultsController {
     ///     - for: An object in the receiver’s fetch results.
     ///
     /// - returns: The index path of object in the receiver’s fetch results, or nil if object could not be found.
-    public func indexPath(for snapshot: FIRDataSnapshot) -> IndexPath? {
+    public func indexPath(for snapshot: DataSnapshot) -> IndexPath? {
         return sections.lookup(snapshot: snapshot)?.path
     }
     
@@ -160,21 +160,21 @@ extension ComposedFirebaseResultsController {
     }
     
     fileprivate func notifyWillChangeContent() {
-        print("will change content")
+//        print("will change content")
     }
     
     fileprivate func notifyDidChangeContent() {
-        print("did change content")
+//        print("did change content")
         if !isLoading {
             // notify the delegate
-            print("\tnotify will change content")
+//            print("\tnotify will change content")
             delegate?.controllerWillChangeContent(self)
             
             // process diffs
             processPendingChanges()
             
             // notify the delegate
-            print("\tnotify did change content")
+//            print("\tnotify did change content")
             delegate?.controllerDidChangeContent(self)
         }
     }

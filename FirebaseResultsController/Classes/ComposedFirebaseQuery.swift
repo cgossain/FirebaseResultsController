@@ -35,11 +35,11 @@ public class ComposedFirebaseQuery {
     /// The current state of the query.
     public fileprivate(set) var state: FirebaseResultsController.State = .initial
     
-    fileprivate var queriesByIdentifier: [String: FIRDatabaseQuery] = [:]
+    fileprivate var queriesByIdentifier: [String: DatabaseQuery] = [:]
     
-    fileprivate var handlesByIdentifier: [String: FIRDatabaseHandle] = [:]
+    fileprivate var handlesByIdentifier: [String: DatabaseHandle] = [:]
     
-    fileprivate var resultsByIdentifier: [String: FIRDataSnapshot] = [:]
+    fileprivate var resultsByIdentifier: [String: DataSnapshot] = [:]
     
     fileprivate lazy var batchingController: BatchingController = {
         let controller = BatchingController()
@@ -57,7 +57,7 @@ public class ComposedFirebaseQuery {
     // MARK: - Public
     
     /// Adds a query to be fetched.
-    public func add(query: FIRDatabaseQuery, forIdentifier identifier: String) {
+    public func add(query: DatabaseQuery, forIdentifier identifier: String) {
         queriesByIdentifier[identifier] = query
     }
     
@@ -87,7 +87,7 @@ public class ComposedFirebaseQuery {
     }
     
     /// Returns the result of the query associated with the given identifier.
-    public func result(forIdentifier identifier: String) -> FIRDataSnapshot? {
+    public func result(forIdentifier identifier: String) -> DataSnapshot? {
         return resultsByIdentifier[identifier]
     }
     
@@ -112,7 +112,7 @@ extension ComposedFirebaseQuery: BatchingControllerDelegate {
         delegate?.queryWillChangeContent(self)
     }
     
-    func controller(_ controller: BatchingController, finishedBatchingWithInserted inserted: Set<FIRDataSnapshot>, changed: Set<FIRDataSnapshot>, removed: Set<FIRDataSnapshot>) {
+    func controller(_ controller: BatchingController, finishedBatchingWithInserted inserted: Set<DataSnapshot>, changed: Set<DataSnapshot>, removed: Set<DataSnapshot>) {
         // update the state
         state = .contentLoaded
         

@@ -20,7 +20,7 @@ protocol BatchingControllerDelegate: class {
     func controllerWillBeginBatchingChanges(_ controller: BatchingController)
     
     /// Called when the controller has finished batching changes, passing the sets of inserts, changes, and removed snapshots.
-    func controller(_ controller: BatchingController, finishedBatchingWithInserted inserted: Set<FIRDataSnapshot>, changed: Set<FIRDataSnapshot>, removed: Set<FIRDataSnapshot>)
+    func controller(_ controller: BatchingController, finishedBatchingWithInserted inserted: Set<DataSnapshot>, changed: Set<DataSnapshot>, removed: Set<DataSnapshot>)
 }
 
 
@@ -49,17 +49,17 @@ class BatchingController {
     }
     
     /// Notifies the controller of an inserted snapshot.
-    func insert(snapshot: FIRDataSnapshot) {
+    func insert(snapshot: DataSnapshot) {
         batch(inserted: Set([snapshot]), changed: nil, removed: nil)
     }
     
     /// Notifies the controller of a changed snapshot.
-    func change(snapshot: FIRDataSnapshot) {
+    func change(snapshot: DataSnapshot) {
         batch(inserted: nil, changed: Set([snapshot]), removed: nil)
     }
     
     /// Notifies the controller of a removed snapshot.
-    func remove(snapshot: FIRDataSnapshot) {
+    func remove(snapshot: DataSnapshot) {
         batch(inserted: nil, changed: nil, removed: Set([snapshot]))
     }
     
@@ -69,17 +69,17 @@ class BatchingController {
         // so this method will make sure to call `controllerWillBeginBatchingChanges` if needed
         notifyWillBeginBatchingIfNeeded()
         
-        var uniqueInserted: [String: FIRDataSnapshot] = [:]
-        var uniqueChanged: [String: FIRDataSnapshot] = [:]
-        var uniqueRemoved: [String: FIRDataSnapshot] = [:]
+        var uniqueInserted: [String: DataSnapshot] = [:]
+        var uniqueChanged: [String: DataSnapshot] = [:]
+        var uniqueRemoved: [String: DataSnapshot] = [:]
         
         // extract the data from the active timer
         if let timer = batchingTimer {
             // extract and deduplicate changes container in the userInfo
-            if let batch = timer.userInfo as? [String: [String: FIRDataSnapshot]] {
-                let insertedByRefDescription = batch[BatchingControllerInsertedKey] ?? [String: FIRDataSnapshot]()
-                let changedByRefDescription = batch[BatchingControllerChangedKey] ?? [String: FIRDataSnapshot]()
-                let removedByRefDescription = batch[BatchingControllerRemovedKey] ?? [String: FIRDataSnapshot]()
+            if let batch = timer.userInfo as? [String: [String: DataSnapshot]] {
+                let insertedByRefDescription = batch[BatchingControllerInsertedKey] ?? [String: DataSnapshot]()
+                let changedByRefDescription = batch[BatchingControllerChangedKey] ?? [String: DataSnapshot]()
+                let removedByRefDescription = batch[BatchingControllerRemovedKey] ?? [String: DataSnapshot]()
                 
                 // group into unique changes
                 uniqueInserted = insertedByRefDescription
@@ -125,17 +125,17 @@ extension BatchingController {
         }
     }
     
-    fileprivate func batch(inserted: Set<FIRDataSnapshot>?, changed: Set<FIRDataSnapshot>?, removed: Set<FIRDataSnapshot>?) {
+    fileprivate func batch(inserted: Set<DataSnapshot>?, changed: Set<DataSnapshot>?, removed: Set<DataSnapshot>?) {
         // calls `controllerWillBeginBatchingChanges` if needed
         notifyWillBeginBatchingIfNeeded()
         
-        var pendingInserted = [String: FIRDataSnapshot]()
-        var pendingChanged = [String: FIRDataSnapshot]()
-        var pendingRemoved = [String: FIRDataSnapshot]()
+        var pendingInserted = [String: DataSnapshot]()
+        var pendingChanged = [String: DataSnapshot]()
+        var pendingRemoved = [String: DataSnapshot]()
         
         // grab the existing user info from any currently running batching timer
         if let timer = batchingTimer, timer.isValid {
-            if let userInfo = timer.userInfo as? [String: [String: FIRDataSnapshot]] {
+            if let userInfo = timer.userInfo as? [String: [String: DataSnapshot]] {
                 
                 if let pending = userInfo[BatchingControllerInsertedKey] {
                     pendingInserted = pending

@@ -36,7 +36,7 @@ extension Array {
     
 }
 
-extension Array where Element: FIRDataSnapshot {
+extension Array where Element: DataSnapshot {
     
     /// Returns the index at which you should insert the snapshot in order to maintain a sorted array (according to the given sort descriptors).
     func insertionIndex(of element: Element, using sortDescriptors: [NSSortDescriptor]) -> Int {
@@ -59,7 +59,7 @@ extension Array where Element: FIRDataSnapshot {
 
 extension Array where Element: Section {
     
-    func lookup(snapshot: FIRDataSnapshot) -> (section: Section, path: IndexPath)? {
+    func lookup(snapshot: DataSnapshot) -> (section: Section, path: IndexPath)? {
         for (sectionIdx, section) in enumerated() {
             if let rowIdx = section.index(of: snapshot) {
                 return (section: section, path: IndexPath(row: rowIdx, section: sectionIdx))

@@ -13,7 +13,7 @@ Pod::Spec.new do |s|
   s.source           = { :git => 'https://github.com/cgossain@gmail.com/FirebaseResultsController.git', :tag => s.version.to_s }
   s.ios.deployment_target = '9.3'
   s.source_files = 'FirebaseResultsController/Classes/**/*'
-  s.dependency 'Dwifft', '~> 0.5'
+  s.dependency 'Dwifft', '0.5'
 
   # Specify what libraries this depends on.
   s.libraries = [

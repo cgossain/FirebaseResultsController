@@ -21,7 +21,7 @@ class FetchResult {
     let sectionNameKeyPath: String?
     
     /// The current fetch results ordered by section first (if a `sectionNameKeyPath` was provided), then by the fetch request sort descriptors.
-    fileprivate(set) var results: [FIRDataSnapshot] = []
+    fileprivate(set) var results: [DataSnapshot] = []
     
     /// An array containing the name of each section that exists in the results. The order of the items in this list represent the order that the sections should appear.
     /// -note: If the `sectionNameKeyPath` value is `nil`, a single section will be generated.
@@ -81,7 +81,7 @@ class FetchResult {
     }
     
     /// Applies the given changes to the current results.
-    func apply(inserted: [FIRDataSnapshot], updated: [FIRDataSnapshot], deleted: [FIRDataSnapshot]) {
+    func apply(inserted: [DataSnapshot], updated: [DataSnapshot], deleted: [DataSnapshot]) {
         
         // apply insertions
         for snapshot in inserted {
@@ -105,7 +105,7 @@ class FetchResult {
     }
     
     /// Returns the section index of the specified snapshot in the receiver's results.
-    func sectionIndex(for snapshot: FIRDataSnapshot) -> Int? {
+    func sectionIndex(for snapshot: DataSnapshot) -> Int? {
         let sectionKeyValue = snapshot.sectionKeyValue(forSectionNameKeyPath: sectionNameKeyPath)
         
         if let idx = sectionIndicesBySectionKeyValue[sectionKeyValue] {
@@ -122,7 +122,7 @@ class FetchResult {
     }
     
     /// Returns the index if the first snapshot in the section that the snapshot belongs to.
-    func sectionOffset(for snapshot: FIRDataSnapshot) -> Int? {
+    func sectionOffset(for snapshot: DataSnapshot) -> Int? {
         let sectionKeyValue = snapshot.sectionKeyValue(forSectionNameKeyPath: sectionNameKeyPath)
         
         if let idx = sectionOffsetsBySectionKeyValue[sectionKeyValue] {
@@ -143,7 +143,7 @@ class FetchResult {
 extension FetchResult {
     
     /// Adds the snapshot to the results at the correct position, and if it evaluates against the fetch request predicate.
-    func insert(snapshot: FIRDataSnapshot) {
+    func insert(snapshot: DataSnapshot) {
         // return early if the inserted snapshot does not evaluate against our predicate
         if !canInclude(snapshot: snapshot) {
             return
@@ -163,7 +163,7 @@ extension FetchResult {
     }
     
     /// Removes the snapshot if it exists in the results.
-    func delete(snapshot: FIRDataSnapshot) {
+    func delete(snapshot: DataSnapshot) {
         guard let idx = results.index(where: { $0.key == snapshot.key }) else {
             return
         }
@@ -179,7 +179,7 @@ extension FetchResult {
     }
     
     /// Replaces the existing version of the snapshot with the specified one.
-    func update(snapshot new: FIRDataSnapshot) {
+    func update(snapshot new: DataSnapshot) {
         // since the values will have changed, we cannot remove the "new" version of the snapshot, instead we'll have to locate and remove the "old" version of this snapshot
         // this is important when we are sectionning because the `sectionKeyValue` may have changed
         guard let idx = results.index(where: { $0.key == new.key }) else {
@@ -215,12 +215,12 @@ extension FetchResult {
     }
     
     /// Extracts the section key value of the givent snapshot.
-    fileprivate func sectionKeyValue(of snapshot: FIRDataSnapshot) -> String {
+    fileprivate func sectionKeyValue(of snapshot: DataSnapshot) -> String {
         return snapshot.sectionKeyValue(forSectionNameKeyPath: self.sectionNameKeyPath)
     }
     
     /// Returns true if the given snapshot should be included in the data set.
-    fileprivate func canInclude(snapshot: FIRDataSnapshot) -> Bool {
+    fileprivate func canInclude(snapshot: DataSnapshot) -> Bool {
         if let predicate = fetchRequest.predicate {
             return predicate.evaluate(with: snapshot.value)
         }
@@ -229,7 +229,7 @@ extension FetchResult {
     
 }
 
-extension FIRDataSnapshot {
+extension DataSnapshot {
     
     /// Extracts the section key value for the given key path.
     func sectionKeyValue(forSectionNameKeyPath sectionNameKeyPath: String?) -> String {

@@ -61,7 +61,7 @@ public class FirebaseResultsController {
     public weak var changeTracker: FirebaseResultsControllerChangeTracking?
     
     /// The results of the fetch. Returns `nil` if `performFetch()` hasn't yet been called.
-    public var fetchedObjects: [FIRDataSnapshot] { return currentFetchResult.results }
+    public var fetchedObjects: [DataSnapshot] { return currentFetchResult.results }
 
     /// The sections for the receiver’s fetch results.
     public var sections: [Section] { return currentFetchResult.sections }
@@ -70,11 +70,11 @@ public class FirebaseResultsController {
     public fileprivate(set) var state: State = .initial
     
     // firebase observer handles
-    fileprivate var childAddedHandle: FIRDatabaseHandle = 0
-    fileprivate var childChangedHandle: FIRDatabaseHandle = 0
-    fileprivate var childMovedHandle: FIRDatabaseHandle = 0
-    fileprivate var childRemovedHandle: FIRDatabaseHandle = 0
-    fileprivate var valueHandle: FIRDatabaseHandle = 0
+    fileprivate var childAddedHandle: DatabaseHandle = 0
+    fileprivate var childChangedHandle: DatabaseHandle = 0
+    fileprivate var childMovedHandle: DatabaseHandle = 0
+    fileprivate var childRemovedHandle: DatabaseHandle = 0
+    fileprivate var valueHandle: DatabaseHandle = 0
     
     /// A value that associates a call to `performFetch` with the data returned for that fetch.
     fileprivate var currentFetchHandle = 0
@@ -135,7 +135,7 @@ public class FirebaseResultsController {
     ///     - at: An index path in the fetch results. If indexPath does not describe a valid index path in the fetch results, an error is thrown.
     ///
     /// - returns: The object at a given index path in the fetch results.
-    public func object(at: IndexPath) throws -> FIRDataSnapshot {
+    public func object(at: IndexPath) throws -> DataSnapshot {
         if at.section < sections.count {
             let section = sections[at.section]
             
@@ -153,7 +153,7 @@ public class FirebaseResultsController {
     ///     - for: An object in the receiver’s fetch results.
     ///
     /// - returns: The index path of object in the receiver’s fetch results, or nil if object could not be found.
-    public func indexPath(for snapshot: FIRDataSnapshot) -> IndexPath? {
+    public func indexPath(for snapshot: DataSnapshot) -> IndexPath? {
         return sections.lookup(snapshot: snapshot)?.path
     }
     
@@ -229,15 +229,15 @@ extension FirebaseResultsController {
 
 extension FirebaseResultsController {
     
-    fileprivate func handle(inserted: FIRDataSnapshot) {
+    fileprivate func handle(inserted: DataSnapshot) {
         batchingController.insert(snapshot: inserted)
     }
     
-    fileprivate func handle(changed: FIRDataSnapshot) {
+    fileprivate func handle(changed: DataSnapshot) {
         batchingController.change(snapshot: changed)
     }
     
-    fileprivate func handle(removed: FIRDataSnapshot) {
+    fileprivate func handle(removed: DataSnapshot) {
         batchingController.remove(snapshot: removed)
     }
     
@@ -249,7 +249,7 @@ extension FirebaseResultsController: BatchingControllerDelegate {
         delegate?.controllerWillChangeContent(self)
     }
     
-    func controller(_ controller: BatchingController, finishedBatchingWithInserted inserted: Set<FIRDataSnapshot>, changed: Set<FIRDataSnapshot>, removed: Set<FIRDataSnapshot>) {
+    func controller(_ controller: BatchingController, finishedBatchingWithInserted inserted: Set<DataSnapshot>, changed: Set<DataSnapshot>, removed: Set<DataSnapshot>) {
         // update the state
         state = .contentLoaded
         

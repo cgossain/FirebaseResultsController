@@ -17,7 +17,7 @@ public struct SectionDescriptor {
 
 public struct RowDescriptor {
     let indexPath: IndexPath
-    let value: FIRDataSnapshot
+    let value: DataSnapshot
 }
 
 public struct FetchResultChanges {
@@ -50,7 +50,7 @@ public struct FetchResultChanges {
     // MARK: - Initilization
     
     /// Creates a diff between two fetch result objects.
-    init(from fromResult: FetchResult, to toResult: FetchResult, changedObjects: [FIRDataSnapshot]) {
+    init(from fromResult: FetchResult, to toResult: FetchResult, changedObjects: [DataSnapshot]) {
         fetchResultBeforeChanges = fromResult
         fetchResultAfterChanges = toResult
         
@@ -80,7 +80,7 @@ public struct FetchResultChanges {
         // extract the moves from the rows diff
         var deletions = rowsDiff.deletions
         var insertions = rowsDiff.insertions
-        var moves: [(from: DiffStep<FIRDataSnapshot>, to: DiffStep<FIRDataSnapshot>)] = []
+        var moves: [(from: DiffStep<DataSnapshot>, to: DiffStep<DataSnapshot>)] = []
         
         // moves will be the diffs that appear both as deletions and insertions
         for deletion in deletions {
@@ -220,7 +220,7 @@ public struct FetchResultChanges {
     }
     
     /// Convenience method that enumerates all the row changes described by the receiver.
-    public func enumerateRowChanges(_ body: ((_ anObject: FIRDataSnapshot, _ indexPath: IndexPath?, _ type: ResultsChangeType, _ newIndexPath: IndexPath?) -> Void)) {
+    public func enumerateRowChanges(_ body: ((_ anObject: DataSnapshot, _ indexPath: IndexPath?, _ type: ResultsChangeType, _ newIndexPath: IndexPath?) -> Void)) {
         
         // changed rows
         if let changedRows = changedRows {

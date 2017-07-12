@@ -12,7 +12,7 @@ import FirebaseDatabase
 public class FirebaseFetchRequest {
     
     /// The database query associated with this fetch request.
-    public let query: FIRDatabaseQuery
+    public let query: DatabaseQuery
     
     /// A predicate used by the results controller to filter the query results.
     public var predicate: NSPredicate?
@@ -21,7 +21,7 @@ public class FirebaseFetchRequest {
     public var sortDescriptors: [NSSortDescriptor]?
     
     /// Initializes the fetch request with the given FIRDatabaseQuery.
-    public init(query: FIRDatabaseQuery) {
+    public init(query: DatabaseQuery) {
         self.query = query
     }
     

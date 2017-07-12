@@ -19,7 +19,7 @@ public class Section {
     public var numberOfObjects: Int { return objects.count }
     
     /// Returns the array of objects in the section.
-    public fileprivate(set) var objects: [FIRDataSnapshot] = []
+    public fileprivate(set) var objects: [DataSnapshot] = []
     
     /// The section key value represented by the receiver.
     let sectionKeyValue: String
@@ -29,9 +29,8 @@ public class Section {
     
     /// Initializes a section object with the given section key value and sort descriptors.
     ///
-    /// - parameters:
-    ///     - sectionKeyValue The value that represents this section.
-    ///     - sortDescriptors The sort descriptors that describe how items in this sections will be sorted.
+    /// - Parameter sectionKeyValue: The value that represents this section.
+    /// - Parameter sortDescriptors: The sort descriptors that describe how items in this sections will be sorted.
     ///
     init(sectionKeyValue: String, sortDescriptors: [NSSortDescriptor]?) {
         self.sectionKeyValue = sectionKeyValue
@@ -40,7 +39,7 @@ public class Section {
     
     /// Inserts the given snapshot into the receivers contents and returns the index at which it was inserted.
     @discardableResult
-    func insert(snapshot: FIRDataSnapshot) -> Int {
+    func insert(snapshot: DataSnapshot) -> Int {
         let idx = objects.insertionIndex(of: snapshot, using: sortDescriptors ?? [])
         objects.insert(snapshot, at: idx)
         return idx
@@ -48,7 +47,7 @@ public class Section {
     
     /// Removes the given snapshot from the receivers contents and returns the index from which it was removed.
     @discardableResult
-    func remove(snapshot: FIRDataSnapshot) -> Int? {
+    func remove(snapshot: DataSnapshot) -> Int? {
         guard let idx = index(of: snapshot) else {
             return nil
         }
@@ -58,7 +57,7 @@ public class Section {
     }
     
     /// Returns the index of the snapshot in the section, or `nil` if it was not found.
-    func index(of snapshot: FIRDataSnapshot) -> Int? {
+    func index(of snapshot: DataSnapshot) -> Int? {
         guard let idx = objects.index(where: { $0.key == snapshot.key }) else {
             return nil
         }
