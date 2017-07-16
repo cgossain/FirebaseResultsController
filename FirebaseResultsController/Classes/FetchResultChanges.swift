@@ -12,7 +12,7 @@ import Dwifft
 
 public struct SectionDescriptor {
     let idx: Int
-    let section: Section
+    let section: ResultsSection
 }
 
 public struct RowDescriptor {
@@ -201,7 +201,7 @@ public struct FetchResultChanges {
     // MARK: - Public
     
     /// Convenience method that enumerates all the section changes described by the receiver.
-    public func enumerateSectionChanges(_ body: ((_ section: Section, _ sectionIndex: Int, _ type: ResultsChangeType) -> Void)) {
+    public func enumerateSectionChanges(_ body: ((_ section: ResultsSection, _ sectionIndex: Int, _ type: ResultsChangeType) -> Void)) {
         
         // removed sections
         if let removedSections = removedSections {

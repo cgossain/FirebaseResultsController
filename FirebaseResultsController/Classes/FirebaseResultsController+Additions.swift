@@ -57,9 +57,9 @@ extension Array where Element: DataSnapshot {
     
 }
 
-extension Array where Element: Section {
+extension Array where Element: ResultsSection {
     
-    func lookup(snapshot: DataSnapshot) -> (section: Section, path: IndexPath)? {
+    func lookup(snapshot: DataSnapshot) -> (section: ResultsSection, path: IndexPath)? {
         for (sectionIdx, section) in enumerated() {
             if let rowIdx = section.index(of: snapshot) {
                 return (section: section, path: IndexPath(row: rowIdx, section: sectionIdx))
@@ -68,7 +68,7 @@ extension Array where Element: Section {
         return nil
     }
     
-//    func sorted(by sortDescriptors: [NSSortDescriptor]) -> [Section] {
+//    func sorted(by sortDescriptors: [NSSortDescriptor]) -> [ResultsSection] {
 //        return self.sorted() {
 //            var result: ComparisonResult = .orderedSame
 //            for sortDescriptor in sortDescriptors {

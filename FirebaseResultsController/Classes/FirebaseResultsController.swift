@@ -64,7 +64,7 @@ public class FirebaseResultsController {
     public var fetchedObjects: [DataSnapshot] { return currentFetchResult.results }
 
     /// The sections for the receiver’s fetch results.
-    public var sections: [Section] { return currentFetchResult.sections }
+    public var sections: [ResultsSection] { return currentFetchResult.sections }
     
     /// The current state of the controller.
     public fileprivate(set) var state: State = .initial

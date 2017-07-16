@@ -20,7 +20,7 @@ public protocol ComposedFirebaseResultsControllerDelegate: class {
     func controller(_ controller: ComposedFirebaseResultsController, didChange anObject: DataSnapshot, at indexPath: IndexPath?, for type: ResultsChangeType, newIndexPath: IndexPath?)
     
     /// Notifies the delegate of added or removed sections.
-    func controller(_ controller: ComposedFirebaseResultsController, didChange section: Section, atSectionIndex sectionIndex: Int, for type: ResultsChangeType)
+    func controller(_ controller: ComposedFirebaseResultsController, didChange section: ResultsSection, atSectionIndex sectionIndex: Int, for type: ResultsChangeType)
     
     /// Called when the results controller begins receiving changes.
     func controllerWillChangeContent(_ controller: ComposedFirebaseResultsController)
@@ -44,7 +44,7 @@ public class ComposedFirebaseResultsController {
     public weak var delegate: ComposedFirebaseResultsControllerDelegate?
     
     /// The combined sections of the individual controller fetch results.
-    public var sections: [Section] { return controllers.flatMap({ $0.sections }) }
+    public var sections: [ResultsSection] { return controllers.flatMap({ $0.sections }) }
     
     /// Inidicates if the controller is currently loading content.
     public var isLoading: Bool {

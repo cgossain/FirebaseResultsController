@@ -30,7 +30,7 @@ class FetchResult {
     }
     
     /// The fetch results as arranged sections.
-    var sections: [Section] {
+    var sections: [ResultsSection] {
         if let sections = _sections {
             return sections
         }
@@ -40,10 +40,10 @@ class FetchResult {
         _sections = computed
         return computed
     }
-    fileprivate var _sections: [Section]? // hold the current non-stale sections array
+    fileprivate var _sections: [ResultsSection]? // hold the current non-stale sections array
     
     /// A dictionary that maps a section to its `sectionKeyValue`.
-    fileprivate var sectionsBySectionKeyValue: [String: Section] = [:]
+    fileprivate var sectionsBySectionKeyValue: [String: ResultsSection] = [:]
     
     /// A dictionary that maps a sections' index to its `sectionKeyValue`.
     fileprivate var sectionIndicesBySectionKeyValue: [String: Int] = [:]
@@ -67,9 +67,9 @@ class FetchResult {
             results.append(contentsOf: fetchResult.results)
             
             // copy the section objects; we don't want to affect the original fetch results sections when we make changes here
-            var copiedSectionsBySectionKeyValue: [String: Section] = [:]
+            var copiedSectionsBySectionKeyValue: [String: ResultsSection] = [:]
             for (sectionKeyValue, section) in fetchResult.sectionsBySectionKeyValue {
-                copiedSectionsBySectionKeyValue[sectionKeyValue] = section.copy() as? Section
+                copiedSectionsBySectionKeyValue[sectionKeyValue] = section.copy() as? ResultsSection
             }
             sectionsBySectionKeyValue = copiedSectionsBySectionKeyValue
         }
@@ -157,7 +157,7 @@ extension FetchResult {
         
         // create/update the section
         let sectionKeyValue = snapshot.sectionKeyValue(forSectionNameKeyPath: sectionNameKeyPath)
-        let section = sectionsBySectionKeyValue[sectionKeyValue] ?? Section(sectionKeyValue: sectionKeyValue, sortDescriptors: fetchRequest.sortDescriptors)
+        let section = sectionsBySectionKeyValue[sectionKeyValue] ?? ResultsSection(sectionKeyValue: sectionKeyValue, sortDescriptors: fetchRequest.sortDescriptors)
         section.insert(snapshot: snapshot)
         sectionsBySectionKeyValue[sectionKeyValue] = section
     }

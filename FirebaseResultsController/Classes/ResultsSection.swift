@@ -1,5 +1,5 @@
 //
-//  Section.swift
+//  ResultsSection.swift
 //  Pods
 //
 //  Created by Christian Gossain on 2017-02-12.
@@ -10,7 +10,7 @@ import Foundation
 import FirebaseDatabase
 
 
-public class Section {
+public class ResultsSection {
     
     /// Name of the section.
     public var name: String { return sectionKeyValue }
@@ -66,7 +66,7 @@ public class Section {
     
 }
 
-extension Section: CustomStringConvertible {
+extension ResultsSection: CustomStringConvertible {
     
     public var description: String {
         return "<| Section: \(name), Count: \(numberOfObjects) |>"
@@ -74,9 +74,9 @@ extension Section: CustomStringConvertible {
     
 }
 
-extension Section: Hashable {
+extension ResultsSection: Hashable {
     
-    public static func ==(lhs: Section, rhs: Section) -> Bool {
+    public static func ==(lhs: ResultsSection, rhs: ResultsSection) -> Bool {
         if !lhs.sectionKeyValue.isEqual(rhs.sectionKeyValue) {
             return false
         }
@@ -90,10 +90,10 @@ extension Section: Hashable {
     
 }
 
-extension Section: NSCopying {
+extension ResultsSection: NSCopying {
     
     public func copy(with zone: NSZone? = nil) -> Any {
-        let section = Section(sectionKeyValue: sectionKeyValue, sortDescriptors: sortDescriptors)
+        let section = ResultsSection(sectionKeyValue: sectionKeyValue, sortDescriptors: sortDescriptors)
         section.objects = objects
         return section
     }
