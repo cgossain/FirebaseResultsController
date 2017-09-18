@@ -18,8 +18,8 @@ class ViewController: UITableViewController {
     
     var willBeginChangingContentTime = Date()
     
-    lazy var dates1Ref = FIRDatabase.database().reference().child("dates1")
-    lazy var dates2Ref = FIRDatabase.database().reference().child("dates2")
+    lazy var dates1Ref = Database.database().reference().child("dates1")
+    lazy var dates2Ref = Database.database().reference().child("dates2")
     
     lazy var resultsController1: FirebaseResultsController = {
         let query = self.dates1Ref.queryOrderedByKey()
@@ -87,7 +87,7 @@ class ViewController: UITableViewController {
         return randomDate
     }
     
-    func configureCell(_ cell: UITableViewCell, with snapshot: FIRDataSnapshot) {
+    func configureCell(_ cell: UITableViewCell, with snapshot: DataSnapshot) {
         if let timeInterval = (snapshot.value as? [String: Any])?["date"] as? Double {
             cell.textLabel?.text = dateFormatter.string(from: Date(timeIntervalSinceReferenceDate: timeInterval))
         }
@@ -129,7 +129,7 @@ class ViewController: UITableViewController {
         
         // make sure the controller is spitting back the correct path
         let path = compoundResultsController.indexPath(for: snapshot)
-        print("Controller Path: \(path)")
+        print("Controller Path: \(String(describing: path))")
         
         tableView.deselectRow(at: indexPath, animated: true)
     }
@@ -142,7 +142,7 @@ extension ViewController: ComposedFirebaseResultsControllerDelegate {
         tableView.beginUpdates()
     }
     
-    func controller(_ controller: ComposedFirebaseResultsController, didChange section: Section, atSectionIndex sectionIndex: Int, for type: ResultsChangeType) {
+    func controller(_ controller: ComposedFirebaseResultsController, didChange section: ResultsSection, atSectionIndex sectionIndex: Int, for type: ResultsChangeType) {
         switch type {
         case .insert:
             self.tableView.insertSections(IndexSet(integer: sectionIndex), with: .fade)
@@ -153,7 +153,7 @@ extension ViewController: ComposedFirebaseResultsControllerDelegate {
         }
     }
     
-    func controller(_ controller: ComposedFirebaseResultsController, didChange anObject: FIRDataSnapshot, at indexPath: IndexPath?, for type: ResultsChangeType, newIndexPath: IndexPath?) {
+    func controller(_ controller: ComposedFirebaseResultsController, didChange anObject: DataSnapshot, at indexPath: IndexPath?, for type: ResultsChangeType, newIndexPath: IndexPath?) {
         switch type {
         case .insert:
             tableView.insertRows(at: [newIndexPath!], with: .fade)
