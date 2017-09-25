@@ -52,13 +52,13 @@ public class ComposedFirebaseResultsController {
         
         // check the individual controllers
         for controller in controllers {
-            if controller.state == .loadingContent {
+            if controller.state == .loading {
                 changing += 1
             }
         }
         
         // check the composed query
-        if let composedQuery = composedQuery, composedQuery.state == .loadingContent {
+        if let composedQuery = composedQuery, composedQuery.state == .loading {
             changing += 1
         }
         

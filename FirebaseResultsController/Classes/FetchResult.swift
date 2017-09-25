@@ -9,7 +9,6 @@
 import Foundation
 import FirebaseDatabase
 
-
 private let FetchResultNilSectionName = "" // the name of the `nil` section
 
 class FetchResult {

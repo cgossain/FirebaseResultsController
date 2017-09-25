@@ -8,7 +8,7 @@
 
 import UIKit
 import FirebaseResultsController
-import FirebaseDatabase
+import FirebaseCommunity
 
 class ViewController: UITableViewController {
     

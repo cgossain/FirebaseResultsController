@@ -10,17 +10,20 @@ import Foundation
 import FirebaseDatabase
 import Dwifft
 
-public struct SectionDescriptor {
-    let idx: Int
-    let section: ResultsSection
-}
 
-public struct RowDescriptor {
-    let indexPath: IndexPath
-    let value: DataSnapshot
-}
-
+/// A FetchResultChanges object provides detailed information about the differences between two fetch
+/// results. The changes object provides information useful for updating a UI that lists the contents
+/// of a fetch result, such as the indexes of added, removed, and rearranged objects.
 public struct FetchResultChanges {
+    public struct Section {
+        let idx: Int
+        let section: ResultsSection
+    }
+    
+    public struct Row {
+        let indexPath: IndexPath
+        let value: DataSnapshot
+    }
     
     /// The fetch result before applying the changes.
     let fetchResultBeforeChanges: FetchResult
@@ -29,27 +32,30 @@ public struct FetchResultChanges {
     let fetchResultAfterChanges: FetchResult
     
     /// The indexes of the removed sections, relative to the 'before' state.
-    public fileprivate(set) var removedSections: [SectionDescriptor]?
+    public fileprivate(set) var removedSections: [Section]?
     
     /// The index paths of the removed rows, relative to the 'before' state.
-    public fileprivate(set) var removedRows: [RowDescriptor]?
+    public fileprivate(set) var removedRows: [Row]?
 
     /// The indexes of the inserted sections, relative to the 'before' state, after deletions have been applied.
-    public fileprivate(set) var insertedSections: [SectionDescriptor]?
+    public fileprivate(set) var insertedSections: [Section]?
     
     /// The index paths of the inserted rows, relative to the 'before' state, after deletions have been applied.
-    public fileprivate(set) var insertedRows: [RowDescriptor]?
+    public fileprivate(set) var insertedRows: [Row]?
     
     /// The index paths of the moved rows.
-    public fileprivate(set) var movedRows: [(from: RowDescriptor, to: RowDescriptor)]?
+    public fileprivate(set) var movedRows: [(from: Row, to: Row)]?
     
     /// The index paths of the changed rows, relative to the 'before' state.
-    public fileprivate(set) var changedRows: [RowDescriptor]?
+    public fileprivate(set) var changedRows: [Row]?
     
     
-    // MARK: - Initilization
+    // MARK: - Lifecycle
     
     /// Creates a diff between two fetch result objects.
+    /// - Param fromResult: The fetch result object with the state of objects before the change.
+    /// - Param toResult: The fetch result object with the state of objects after the change.
+    /// - Param changedObjects: The objects in the fetch result whose content been updated.
     init(from fromResult: FetchResult, to toResult: FetchResult, changedObjects: [DataSnapshot]) {
         fetchResultBeforeChanges = fromResult
         fetchResultAfterChanges = toResult
@@ -62,17 +68,17 @@ public struct FetchResultChanges {
         
         
         // get removed sections
-        var removedSections: [SectionDescriptor] = []
+        var removedSections: [Section] = []
         for removed in sectionsDiff.deletions {
-            removedSections.append(SectionDescriptor(idx: removed.idx, section: fetchResultBeforeChanges.sections[removed.idx]))
+            removedSections.append(Section(idx: removed.idx, section: fetchResultBeforeChanges.sections[removed.idx]))
         }
         self.removedSections = removedSections
         
         
         // get inserted sections
-        var insertedSections: [SectionDescriptor] = []
+        var insertedSections: [Section] = []
         for inserted in sectionsDiff.insertions {
-            insertedSections.append(SectionDescriptor(idx: inserted.idx, section: fetchResultAfterChanges.sections[inserted.idx]))
+            insertedSections.append(Section(idx: inserted.idx, section: fetchResultAfterChanges.sections[inserted.idx]))
         }
         self.insertedSections = insertedSections
         
@@ -103,7 +109,7 @@ public struct FetchResultChanges {
         
         
         // get inserted rows
-        var insertedRows: [RowDescriptor] = []
+        var insertedRows: [Row] = []
         for inserted in insertions {
             // convert the overall index to the appropriate section
             guard let sectionIdx = fetchResultAfterChanges.sectionIndex(for: inserted.value) else {
@@ -119,13 +125,13 @@ public struct FetchResultChanges {
             let indexPath = IndexPath(row: rowIdx, section: sectionIdx)
             
             // track the insert
-            insertedRows.append(RowDescriptor(indexPath: indexPath, value: inserted.value))
+            insertedRows.append(Row(indexPath: indexPath, value: inserted.value))
         }
         self.insertedRows = insertedRows
         
         
         // get deleted rows
-        var removedRows: [RowDescriptor] = []
+        var removedRows: [Row] = []
         for removed in deletions {
             // convert the overall index to the appropriate section
             guard let sectionIdx = fetchResultBeforeChanges.sectionIndex(for: removed.value) else {
@@ -141,13 +147,13 @@ public struct FetchResultChanges {
             let indexPath = IndexPath(row: rowIdx, section: sectionIdx)
             
             // track the deletion
-            removedRows.append(RowDescriptor(indexPath: indexPath, value: removed.value))
+            removedRows.append(Row(indexPath: indexPath, value: removed.value))
         }
         self.removedRows = removedRows
         
         
         // get moved rows
-        var movedRows: [(from: RowDescriptor, to: RowDescriptor)] = []
+        var movedRows: [(from: Row, to: Row)] = []
         for move in moves {
             guard let fromSectionIdx = fetchResultBeforeChanges.sectionIndex(for: move.from.value) else {
                 continue
@@ -175,7 +181,7 @@ public struct FetchResultChanges {
             
             // if the index paths have actually changed track this as a move
             if fromPath != toPath {
-                movedRows.append((from: RowDescriptor(indexPath: fromPath, value: move.from.value), to: RowDescriptor(indexPath: toPath, value: move.to.value)))
+                movedRows.append((from: Row(indexPath: fromPath, value: move.from.value), to: Row(indexPath: toPath, value: move.to.value)))
                 
                 // remove moved objects from the changed objects list
                 if let idx = mutableChangedObjects.index(of: move.to.value) {
@@ -187,22 +193,22 @@ public struct FetchResultChanges {
         
         
         // get changed rows
-        var changedRows: [RowDescriptor] = []
+        var changedRows: [Row] = []
         for changed in mutableChangedObjects {
             guard let path = fetchResultBeforeChanges.sections.lookup(snapshot: changed)?.path else {
                 continue
             }
             
-            changedRows.append(RowDescriptor(indexPath: path, value: changed))
+            changedRows.append(Row(indexPath: path, value: changed))
         }
         self.changedRows = changedRows
     }
+    
     
     // MARK: - Public
     
     /// Convenience method that enumerates all the section changes described by the receiver.
     public func enumerateSectionChanges(_ body: ((_ section: ResultsSection, _ sectionIndex: Int, _ type: ResultsChangeType) -> Void)) {
-        
         // removed sections
         if let removedSections = removedSections {
             for section in removedSections {
@@ -216,12 +222,10 @@ public struct FetchResultChanges {
                 body(section.section, section.idx, .insert)
             }
         }
-        
     }
     
     /// Convenience method that enumerates all the row changes described by the receiver.
     public func enumerateRowChanges(_ body: ((_ anObject: DataSnapshot, _ indexPath: IndexPath?, _ type: ResultsChangeType, _ newIndexPath: IndexPath?) -> Void)) {
-        
         // changed rows
         if let changedRows = changedRows {
             for row in changedRows {
@@ -249,7 +253,6 @@ public struct FetchResultChanges {
                 body(move.to.value, move.from.indexPath, .move, move.to.indexPath)
             }
         }
-        
     }
     
 }

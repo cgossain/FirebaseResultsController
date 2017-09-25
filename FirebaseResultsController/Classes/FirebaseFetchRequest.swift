@@ -10,7 +10,6 @@ import Foundation
 import FirebaseDatabase
 
 public class FirebaseFetchRequest {
-    
     /// The database query associated with this fetch request.
     public let query: DatabaseQuery
     
@@ -24,11 +23,9 @@ public class FirebaseFetchRequest {
     public init(query: DatabaseQuery) {
         self.query = query
     }
-    
 }
 
 extension FirebaseFetchRequest: NSCopying {
-    
     public func copy(with zone: NSZone? = nil) -> Any {
         let copiedFetchRequest = FirebaseFetchRequest(query: query)
         
@@ -41,5 +38,4 @@ extension FirebaseFetchRequest: NSCopying {
         // return the copied fetch request
         return copiedFetchRequest
     }
-    
 }

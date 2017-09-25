@@ -16,36 +16,33 @@ public enum ResultsChangeType: Int {
     case update     = 4
 }
 
-
 public enum FirebaseResultsControllerError: Error {
     case invalidIndexPath(row: Int, section: Int)
 }
 
-
 public protocol FirebaseResultsControllerDelegate: class {
-    
     /// Called when the results controller begins receiving changes.
     func controllerWillChangeContent(_ controller: FirebaseResultsController)
     
     /// Called when the controller has completed processing the all changes.
     func controllerDidChangeContent(_ controller: FirebaseResultsController)
-    
 }
 
 public protocol FirebaseResultsControllerChangeTracking: class {
-    
     /// Notifies the change tracker that the controller has finished tracking all changes, and provides the results of the diff.
     func controller(_ controller: FirebaseResultsController, didChangeContentWith changes: FetchResultChanges)
-    
 }
 
-
 public class FirebaseResultsController {
-    
     public enum State {
+        /// The controller has been initialized, but an initial call to `performFetch()` has not yet been made.
         case initial
-        case loadingContent
-        case contentLoaded
+        
+        /// Currently loading the fetch request and setting up the observers. Initial data has not been fully fetched.
+        case loading
+        
+        /// Fetch request has been loaded, and initial data has been fetched.
+        case loaded
     }
     
     /// The FirebaseFetchRequest instance used to do the fetching. The sort descriptor used in the request groups objects into sections.
@@ -113,7 +110,7 @@ public class FirebaseResultsController {
         currentFetchHandle += 1
         
         // update the state
-        state = .loadingContent
+        state = .loading
         
         // create a new batching controller for this fetch
         batchingController = BatchingController()
@@ -251,7 +248,7 @@ extension FirebaseResultsController: BatchingControllerDelegate {
     
     func controller(_ controller: BatchingController, finishedBatchingWithInserted inserted: Set<DataSnapshot>, changed: Set<DataSnapshot>, removed: Set<DataSnapshot>) {
         // update the state
-        state = .contentLoaded
+        state = .loaded
         
         // create a copy of the current fetch results
         let pendingFetchResult = FetchResult(fetchResult: currentFetchResult)

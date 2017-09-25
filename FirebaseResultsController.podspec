@@ -9,9 +9,9 @@ Pod::Spec.new do |s|
                        DESC
   s.homepage         = 'https://github.com/cgossain@gmail.com/FirebaseResultsController'
   s.license          = { :type => 'MIT', :file => 'LICENSE' }
-  s.author           = { 'cgossain@gmail.com' => 'cgossain@gmail.com' }
+  s.author           = { 'Christian Gossain' => 'cgossain@gmail.com' }
   s.source           = { :git => 'https://github.com/cgossain@gmail.com/FirebaseResultsController.git', :tag => s.version.to_s }
-  s.ios.deployment_target = '9.3'
+  s.ios.deployment_target = '9.0'
   s.source_files = 'FirebaseResultsController/Classes/**/*'
   s.dependency 'Dwifft', '0.5'
 
@@ -37,13 +37,11 @@ Pod::Spec.new do |s|
   # Specify the frameworks we are providing.
   # The app using this Pod should _not_ link these Frameworks,
   # they are bundled as a part of this Pod for technical reasons.
-  s.vendored_frameworks = [
-    'FirebaseResultsController/Frameworks/Firebase/Analytics/*.framework',
-    'FirebaseResultsController/Frameworks/Firebase/Database/*.framework',
-  ]
+  s.vendored_frameworks = 'FirebaseResultsController/Frameworks/**/*.framework'
 
   # LDFLAGS required by Firebase dependencies.
   s.pod_target_xcconfig = {
     'OTHER_LDFLAGS' => '$(inherited) -ObjC',
   }
+
 end

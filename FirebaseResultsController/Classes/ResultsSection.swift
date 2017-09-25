@@ -9,7 +9,6 @@
 import Foundation
 import FirebaseDatabase
 
-
 public class ResultsSection {
     
     /// Name of the section.
