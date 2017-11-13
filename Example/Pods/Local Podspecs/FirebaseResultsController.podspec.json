@@ -11,6 +11,7 @@
   "authors": {
     "Christian Gossain": "cgossain@gmail.com"
   },
+  "static_framework": true,
   "source": {
     "git": "https://github.com/cgossain@gmail.com/FirebaseResultsController.git",
     "tag": "0.1.0"
@@ -22,25 +23,9 @@
   "dependencies": {
     "Dwifft": [
       "0.5"
+    ],
+    "Firebase/Database": [
+
     ]
-  },
-  "libraries": [
-    "c++",
-    "icucore",
-    "sqlite3",
-    "z"
-  ],
-  "frameworks": [
-    "AddressBook",
-    "AdSupport",
-    "CFNetwork",
-    "SafariServices",
-    "Security",
-    "StoreKit",
-    "SystemConfiguration"
-  ],
-  "vendored_frameworks": "FirebaseResultsController/Frameworks/**/*.framework",
-  "pod_target_xcconfig": {
-    "OTHER_LDFLAGS": "$(inherited) -ObjC"
   }
 }
