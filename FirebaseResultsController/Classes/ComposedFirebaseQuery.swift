@@ -53,6 +53,9 @@ public class ComposedFirebaseQuery {
     
     
     // MARK: - Lifecycle
+    public init() {
+        
+    }
     
     deinit {
         unregisterQueryObservers()
