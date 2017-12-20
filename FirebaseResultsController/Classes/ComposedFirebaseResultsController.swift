@@ -15,7 +15,6 @@ public enum ComposedFirebaseResultsControllerError: Error {
 
 
 public protocol ComposedFirebaseResultsControllerDelegate: class {
-    
     /// Notifies the delegate that a fetched object has been changed due to an add, remove, move, or update.
     func controller(_ controller: ComposedFirebaseResultsController, didChange anObject: DataSnapshot, at indexPath: IndexPath?, for type: ResultsChangeType, newIndexPath: IndexPath?)
     
@@ -27,7 +26,6 @@ public protocol ComposedFirebaseResultsControllerDelegate: class {
     
     /// Called when the controller has completed processing the all changes.
     func controllerDidChangeContent(_ controller: ComposedFirebaseResultsController)
-    
 }
 
 /**
@@ -65,11 +63,15 @@ public class ComposedFirebaseResultsController {
         return (changing > 0)
     }
     
+    /// Tracks whether the current update pass is fully or partially due to the composed query updating. This value is only useful
+    /// between calls to controllerWillChangeContent and controllerDidChangeContent. It is immediately reset to false after controllerDidChangeContent returns.
+    fileprivate(set) var composedQueryUpdated = false
+    
     /// Internally used to track diffs by results controller. It's important to only process the diff when all controllers have finished changing.
     fileprivate var pendingChangesByController: [FirebaseResultsController: FetchResultChanges] = [:]
     
-    // MARK: - Lifecycle
     
+    // MARK: - Lifecycle
     /// Initializes the controller with the specified results controllers.
     public init(controllers: [FirebaseResultsController], composedQuery: ComposedFirebaseQuery?) {
         self.controllers = controllers
@@ -160,22 +162,21 @@ extension ComposedFirebaseResultsController {
     }
     
     fileprivate func notifyWillChangeContent() {
-//        print("will change content")
     }
     
     fileprivate func notifyDidChangeContent() {
-//        print("did change content")
         if !isLoading {
             // notify the delegate
-//            print("\tnotify will change content")
             delegate?.controllerWillChangeContent(self)
             
             // process diffs
             processPendingChanges()
             
             // notify the delegate
-//            print("\tnotify did change content")
             delegate?.controllerDidChangeContent(self)
+            
+            // reset
+            composedQueryUpdated = false
         }
     }
     
@@ -208,6 +209,9 @@ extension ComposedFirebaseResultsController: ComposedFirebaseQueryDelegate {
     }
     
     public func queryDidChangeContent(_ query: ComposedFirebaseQuery) {
+        composedQueryUpdated = true
+        
+        // complete the update if needed
         notifyDidChangeContent()
     }
     
