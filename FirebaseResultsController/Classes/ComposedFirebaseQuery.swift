@@ -89,7 +89,7 @@ public class ComposedFirebaseQuery {
                 strongSelf.resultsByIdentifier[identifier] = snapshot
                 
                 // notify the batching controller
-                strongSelf.batchingController.change(snapshot: snapshot)
+                strongSelf.batchingController.update(snapshot)
             })
         }
     }

@@ -66,7 +66,8 @@ public class FirebaseResultsController {
     /// The current state of the controller.
     public fileprivate(set) var state: State = .initial
     
-    // firebase observer handles
+    
+    // MARK: - Private Properties
     fileprivate var childAddedHandle: DatabaseHandle = 0
     fileprivate var childChangedHandle: DatabaseHandle = 0
     fileprivate var childMovedHandle: DatabaseHandle = 0
@@ -83,6 +84,7 @@ public class FirebaseResultsController {
     fileprivate var currentFetchResult: FetchResult!
     
     
+    // MARK: - Lifecycle
     /// Initializes the results controller with the given fetch request and an optional sectionNameKeyPath to section fetched data on.
     ///
     /// - parameters:
@@ -98,10 +100,11 @@ public class FirebaseResultsController {
         unregisterQueryObservers()
     }
     
-    /**
-     Executes the fetch described by the fetch request. You must call this method to start fetching the initial data and to setup the query observers.
-     If you change the sort decriptors or predicate on the fetch request, you must call this method to reconfigure the receiver for the updated fetch request.
-     */
+    
+    // MARK: - Public
+    /// Executes the fetch described by the fetch request. You must call this method to start fetching the initial data and to setup
+    /// the query observers. If you change the sort decriptors or predicate on the fetch request, you must call this method to
+    /// reconfigure the receiver for the updated fetch request.
     public func performFetch() {
         // detach exitsting observers
         unregisterQueryObservers()
@@ -156,9 +159,8 @@ public class FirebaseResultsController {
     
 }
 
-extension FirebaseResultsController {
-    
-    fileprivate func unregisterQueryObservers() {
+fileprivate extension FirebaseResultsController {
+    func unregisterQueryObservers() {
         fetchRequest.query.removeObserver(withHandle: childAddedHandle)
         fetchRequest.query.removeObserver(withHandle: childChangedHandle)
         fetchRequest.query.removeObserver(withHandle: childMovedHandle)
@@ -166,7 +168,7 @@ extension FirebaseResultsController {
         fetchRequest.query.removeObserver(withHandle: valueHandle)
     }
     
-    fileprivate func registerQueryObservers() {
+    func registerQueryObservers() {
         let handle = currentFetchHandle
         
         childAddedHandle = fetchRequest.query.observe(.childAdded, with: { [weak self] (snapshot) in
@@ -185,7 +187,7 @@ extension FirebaseResultsController {
             }
             
             if handle == strongSelf.currentFetchHandle {
-                strongSelf.handle(changed: snapshot)
+                strongSelf.handle(updated: snapshot)
             }
         })
         
@@ -195,7 +197,7 @@ extension FirebaseResultsController {
             }
             
             if handle == strongSelf.currentFetchHandle {
-                strongSelf.handle(changed: snapshot)
+                strongSelf.handle(updated: snapshot)
             }
         })
         
@@ -221,27 +223,20 @@ extension FirebaseResultsController {
             }
         })
     }
-    
 }
 
-extension FirebaseResultsController {
-    
-    fileprivate func handle(inserted: DataSnapshot) {
-        batchingController.insert(snapshot: inserted)
+extension FirebaseResultsController: Hashable {
+    public static func ==(lhs: FirebaseResultsController, rhs: FirebaseResultsController) -> Bool {
+        return lhs.fetchRequest.query == rhs.fetchRequest.query
     }
     
-    fileprivate func handle(changed: DataSnapshot) {
-        batchingController.change(snapshot: changed)
+    public var hashValue: Int {
+        // since the query cannot change this can be used to determine the equality
+        return fetchRequest.query.hashValue
     }
-    
-    fileprivate func handle(removed: DataSnapshot) {
-        batchingController.remove(snapshot: removed)
-    }
-    
 }
 
 extension FirebaseResultsController: BatchingControllerDelegate {
-    
     func controllerWillBeginBatchingChanges(_ controller: BatchingController) {
         delegate?.controllerWillChangeContent(self)
     }
@@ -268,18 +263,18 @@ extension FirebaseResultsController: BatchingControllerDelegate {
         // notify the delegate
         delegate?.controllerDidChangeContent(self)
     }
-    
 }
 
-extension FirebaseResultsController: Hashable {
-    
-    public static func ==(lhs: FirebaseResultsController, rhs: FirebaseResultsController) -> Bool {
-        return lhs.fetchRequest.query == rhs.fetchRequest.query
+fileprivate extension FirebaseResultsController {
+    func handle(inserted: DataSnapshot) {
+        batchingController.insert(inserted)
     }
     
-    public var hashValue: Int {
-        // since the query cannot change this can be used to determine the equality
-        return fetchRequest.query.hashValue
+    func handle(updated: DataSnapshot) {
+        batchingController.update(updated)
     }
     
+    func handle(removed: DataSnapshot) {
+        batchingController.remove(removed)
+    }
 }

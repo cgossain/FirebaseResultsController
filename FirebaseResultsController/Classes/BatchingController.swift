@@ -17,17 +17,10 @@ protocol BatchingControllerDelegate: class {
     func controller(_ controller: BatchingController, finishedBatchingWithInserted inserted: Set<DataSnapshot>, changed: Set<DataSnapshot>, removed: Set<DataSnapshot>)
 }
 
-fileprivate enum BatchingKey {
-    case inserted
-    case changed
-    case removed
-}
-
 /// An internal class used to group incoming results into a single batch of changes. The batching controller will process an active batch after _batchingInterval_ seconds
 /// have elapsed since an object was last inserted, removed or changed. Each time an object is inserted, removed or changed, the internal timer is reset. Otherwise you can
 /// process an active batch immediately by calling `processBatch()`.
 class BatchingController {
-    
     /// The object that will receive batching updates.
     weak var delegate: BatchingControllerDelegate?
     
@@ -45,19 +38,18 @@ class BatchingController {
     
     
     // MARK: - Public
-    
     /// Notifies the controller of an inserted snapshot.
-    func insert(snapshot: DataSnapshot) {
+    func insert(_ snapshot: DataSnapshot) {
         batch(inserted: Set([snapshot]), changed: [], removed: [])
     }
     
     /// Notifies the controller of a changed snapshot.
-    func change(snapshot: DataSnapshot) {
+    func update(_ snapshot: DataSnapshot) {
         batch(inserted: [], changed: Set([snapshot]), removed: [])
     }
     
     /// Notifies the controller of a removed snapshot.
-    func remove(snapshot: DataSnapshot) {
+    func remove(_ snapshot: DataSnapshot) {
         batch(inserted: [], changed: [], removed: Set([snapshot]))
     }
     
@@ -113,6 +105,11 @@ class BatchingController {
 }
 
 fileprivate extension BatchingController {
+    enum BatchingKey {
+        case inserted
+        case changed
+        case removed
+    }
     
     /// Internal method that calls `controllerWillBeginBatchingChanges` if the controller is not currently batching. Otherwise does nothing.
     func notifyWillBeginBatchingIfNeeded() {
@@ -136,7 +133,6 @@ fileprivate extension BatchingController {
         // extract the data from the active timer
         if let timer = batchingTimer, timer.isValid {
             if let userInfo = timer.userInfo as? [BatchingKey: [String: DataSnapshot]] {
-                
                 if let pending = userInfo[.inserted] {
                     pendingInserted = pending
                 }
@@ -155,17 +151,9 @@ fileprivate extension BatchingController {
         }
         
         // add the new objects to the current batch
-        inserted.forEach({ (snapshot) in
-            pendingInserted[snapshot.ref.description] = snapshot
-        })
-        
-        changed.forEach({ (snapshot) in
-            pendingChanged[snapshot.ref.description] = snapshot
-        })
-        
-        removed.forEach({ (snapshot) in
-            pendingRemoved[snapshot.ref.description] = snapshot
-        })
+        inserted.forEach({ (snapshot) in pendingInserted[snapshot.ref.description] = snapshot })
+        changed.forEach({ (snapshot) in pendingChanged[snapshot.ref.description] = snapshot })
+        removed.forEach({ (snapshot) in pendingRemoved[snapshot.ref.description] = snapshot })
         
         // schedule a new timer
         let userInfo: [BatchingKey: [String: DataSnapshot]] = [.inserted : pendingInserted, .changed : pendingChanged, .removed : pendingRemoved]
@@ -176,7 +164,6 @@ fileprivate extension BatchingController {
             processBatch()
         }
     }
-    
 }
 
 fileprivate extension BatchingController {
