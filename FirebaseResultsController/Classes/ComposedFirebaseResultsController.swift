@@ -65,7 +65,7 @@ public class ComposedFirebaseResultsController {
     
     /// Tracks whether the current update pass is fully or partially due to the composed query updating. This value is only useful
     /// between calls to controllerWillChangeContent and controllerDidChangeContent. It is immediately reset to false after controllerDidChangeContent returns.
-    fileprivate(set) var composedQueryUpdated = false
+    public fileprivate(set) var composedQueryUpdated = false
     
     /// Internally used to track diffs by results controller. It's important to only process the diff when all controllers have finished changing.
     fileprivate var pendingChangesByController: [FirebaseResultsController: FetchResultChanges] = [:]
