@@ -132,25 +132,25 @@ public class FirebaseResultsController {
     /// Returns the snapshot at a given indexPath.
     ///
     /// - parameters:
-    ///     - at: An index path in the fetch results. If indexPath does not describe a valid index path in the fetch results, an error is thrown.
+    ///     - indexPath: An index path in the fetch results. If indexPath does not describe a valid index path in the fetch results, an error is thrown.
     ///
     /// - returns: The object at a given index path in the fetch results.
-    public func object(at: IndexPath) throws -> DataSnapshot {
-        if at.section < sections.count {
-            let section = sections[at.section]
+    public func object(at indexPath: IndexPath) throws -> DataSnapshot {
+        if indexPath.section < sections.count {
+            let section = sections[indexPath.section]
             
-            if at.row < section.numberOfObjects {
-                return section.objects[at.row]
+            if indexPath.row < section.numberOfObjects {
+                return section.objects[indexPath.row]
             }
         }
         
-        throw FirebaseResultsControllerError.invalidIndexPath(row: at.row, section: at.section)
+        throw FirebaseResultsControllerError.invalidIndexPath(row: indexPath.row, section: indexPath.section)
     }
     
     /// Returns the indexPath of a given snapshot.
     ///
     /// - parameters:
-    ///     - for: An object in the receiver’s fetch results.
+    ///     - snapshot: An object in the receiver’s fetch results.
     ///
     /// - returns: The index path of object in the receiver’s fetch results, or nil if object could not be found.
     public func indexPath(for snapshot: DataSnapshot) -> IndexPath? {
@@ -252,7 +252,7 @@ extension FirebaseResultsController: BatchingControllerDelegate {
         pendingFetchResult.apply(inserted: Array(inserted), updated: Array(changed), deleted: Array(removed))
         
         // first compute the diff between the current and the new fetch results
-        let diff = FetchResultChanges(from: currentFetchResult, to: pendingFetchResult, changedObjects: Array(changed))
+        let diff = FetchResultChanges(fromResult: currentFetchResult, toResult: pendingFetchResult, changedObjects: Array(changed))
         
         // apply the new results
         currentFetchResult = pendingFetchResult

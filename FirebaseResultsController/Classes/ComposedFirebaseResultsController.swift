@@ -13,7 +13,6 @@ public enum ComposedFirebaseResultsControllerError: Error {
     case invalidSectionIndex(idx: Int)
 }
 
-
 public protocol ComposedFirebaseResultsControllerDelegate: class {
     /// Notifies the delegate that a fetched object has been changed due to an add, remove, move, or update.
     func controller(_ controller: ComposedFirebaseResultsController, didChange anObject: DataSnapshot, at indexPath: IndexPath?, for type: ResultsChangeType, newIndexPath: IndexPath?)
@@ -28,11 +27,9 @@ public protocol ComposedFirebaseResultsControllerDelegate: class {
     func controllerDidChangeContent(_ controller: ComposedFirebaseResultsController)
 }
 
-/**
- Combines the results from individual results controllers into a single controller.
- */
+/// Combines the results from individual results controllers into a single controller.
 public class ComposedFirebaseResultsController {
-    
+    /// The individual result controllers managed by the receiver.
     public let controllers: [FirebaseResultsController]
     
     /// The composed query passed on initialization.
@@ -63,7 +60,7 @@ public class ComposedFirebaseResultsController {
         return (changing > 0)
     }
     
-    /// Tracks whether the current update pass is fully or partially due to the composed query updating. This value is only useful
+    /// Tracks whether the current update pass is fully, or partially due to the composed query updating. This value is only useful
     /// between calls to controllerWillChangeContent and controllerDidChangeContent. It is immediately reset to false after controllerDidChangeContent returns.
     public fileprivate(set) var composedQueryUpdated = false
     
@@ -73,15 +70,18 @@ public class ComposedFirebaseResultsController {
     
     // MARK: - Lifecycle
     /// Initializes the controller with the specified results controllers.
+    ///
+    /// - parameters:
+    ///     - controllers: An array of result controllers whose data should be aggregated in the same order provided.
+    ///     - composedQuery: An optional composed query that should be fetched alongside the provided result controllers.
     public init(controllers: [FirebaseResultsController], composedQuery: ComposedFirebaseQuery?) {
         self.controllers = controllers
         self.composedQuery = composedQuery
     }
     
-    /**
-     Executes the fetch described by the fetch request. You must call this method to start fetching the initial data and to setup the query observers.
-     If you change the sort decriptors or predicate on the fetch request, you must call this method to reconfigure the receiver for the updated fetch request.
-     */
+    
+    /// Executes the fetch described by the fetch request. You must call this method to start fetching the initial data and to setup the query observers.
+    /// If you change the sort decriptors or predicate on the fetch request, you must call this method to reconfigure the receiver for the updated fetch request.
     public func performFetch() {
         // start the fetch on each controller
         for controller in controllers {
@@ -98,26 +98,29 @@ public class ComposedFirebaseResultsController {
     /// Returns the snapshot at a given indexPath.
     ///
     /// - parameters:
-    ///     - at: An index path in the fetch results. If indexPath does not describe a valid index path in the fetch results, an error is thrown.
+    ///     - indexPath: An index path in the fetch results. If indexPath does not describe a valid index path in the fetch results, an error is thrown.
     ///
     /// - returns: The object at a given index path in the fetch results.
-    public func object(at: IndexPath) throws -> DataSnapshot {
-        let controller = try resultsController(forSectionIndex: at.section)
-        let path = indexPath(in: controller, fromCompoundIndexPath: at)
+    public func object(at indexPath: IndexPath) throws -> DataSnapshot {
+        let controller = try resultsController(forSectionIndex: indexPath.section)
+        let path = self.indexPath(in: controller, fromCompoundIndexPath: indexPath)
         return try controller.object(at: path)
     }
     
     /// Returns the indexPath of a given snapshot.
     ///
     /// - parameters:
-    ///     - for: An object in the receiver’s fetch results.
+    ///     - snapshot: An object in the receiver’s fetch results.
     ///
     /// - returns: The index path of object in the receiver’s fetch results, or nil if object could not be found.
     public func indexPath(for snapshot: DataSnapshot) -> IndexPath? {
         return sections.lookup(snapshot: snapshot)?.path
     }
     
-    /// Returns the controller that manages the data at the given section index.
+    /// Returns the result controller that manages the data at the given section index.
+    ///
+    /// - parameters:
+    ///     - sectionIndex: A section index in the composed controller.
     public func resultsController(forSectionIndex sectionIndex: Int) throws -> FirebaseResultsController {
         var sectionOffset = 0
         
@@ -134,22 +137,21 @@ public class ComposedFirebaseResultsController {
     
 }
 
-extension ComposedFirebaseResultsController {
-    
+fileprivate extension ComposedFirebaseResultsController {
     /// Returns the index path in the overall results, from an index path within a given results controller.
-    fileprivate func compoundIndexPath(for path: IndexPath, in controller: FirebaseResultsController) -> IndexPath {
+    func compoundIndexPath(for path: IndexPath, in controller: FirebaseResultsController) -> IndexPath {
         let sectionOffset = self.sectionOffset(for: controller)
         return IndexPath(row: path.row, section: sectionOffset + path.section)
     }
     
     /// Returns the index path within a given controller, from an index path specified in the overall results.
-    fileprivate func indexPath(in controller: FirebaseResultsController, fromCompoundIndexPath path: IndexPath) -> IndexPath {
+    func indexPath(in controller: FirebaseResultsController, fromCompoundIndexPath path: IndexPath) -> IndexPath {
         let sectionOffset = self.sectionOffset(for: controller)
         return IndexPath(row: path.row, section: path.section - sectionOffset)
     }
     
     /// Returns the index of the first section of the given controller in the overall sections.
-    fileprivate func sectionOffset(for resultsController: FirebaseResultsController) -> Int {
+    func sectionOffset(for resultsController: FirebaseResultsController) -> Int {
         var offset = 0
         for controller in controllers {
             if resultsController == controller {
@@ -161,10 +163,10 @@ extension ComposedFirebaseResultsController {
         return offset
     }
     
-    fileprivate func notifyWillChangeContent() {
+    func notifyWillChangeContent() {
     }
     
-    fileprivate func notifyDidChangeContent() {
+    func notifyDidChangeContent() {
         if !isLoading {
             // notify the delegate
             delegate?.controllerWillChangeContent(self)
@@ -179,11 +181,9 @@ extension ComposedFirebaseResultsController {
             composedQueryUpdated = false
         }
     }
-    
 }
 
 extension ComposedFirebaseResultsController: FirebaseResultsControllerDelegate {
-    
     public func controllerWillChangeContent(_ controller: FirebaseResultsController) {
         notifyWillChangeContent()
     }
@@ -191,19 +191,15 @@ extension ComposedFirebaseResultsController: FirebaseResultsControllerDelegate {
     public func controllerDidChangeContent(_ controller: FirebaseResultsController) {
         notifyDidChangeContent()
     }
-    
 }
 
 extension ComposedFirebaseResultsController: FirebaseResultsControllerChangeTracking {
-    
     public func controller(_ controller: FirebaseResultsController, didChangeContentWith changes: FetchResultChanges) {
         pendingChangesByController[controller] = changes
     }
-    
 }
 
 extension ComposedFirebaseResultsController: ComposedFirebaseQueryDelegate {
-    
     public func queryWillChangeContent(_ query: ComposedFirebaseQuery) {
         notifyWillChangeContent()
     }
@@ -214,14 +210,11 @@ extension ComposedFirebaseResultsController: ComposedFirebaseQueryDelegate {
         // complete the update if needed
         notifyDidChangeContent()
     }
-    
 }
 
-extension ComposedFirebaseResultsController {
-    
-    fileprivate func processPendingChanges() {
+fileprivate extension ComposedFirebaseResultsController {
+     func processPendingChanges() {
         for (controller, changes) in pendingChangesByController {
-            
             // apply section changes
             changes.enumerateSectionChanges { (section, sectionIndex, type) in
                 let sectionOffset = self.sectionOffset(for: controller)
@@ -250,5 +243,4 @@ extension ComposedFirebaseResultsController {
         
         pendingChangesByController.removeAll()
     }
-    
 }

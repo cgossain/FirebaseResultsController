@@ -10,7 +10,6 @@ import Foundation
 import FirebaseDatabase
 
 extension Array {
-    
     /// From Stack Overflow:
     /// http://stackoverflow.com/questions/26678362/how-do-i-insert-an-element-at-the-correct-position-into-a-sorted-array-in-swift
     ///
@@ -33,11 +32,9 @@ extension Array {
         }
         return low // not found, would be inserted at position `low`
     }
-    
 }
 
 extension Array where Element: DataSnapshot {
-    
     /// Returns the index at which you should insert the snapshot in order to maintain a sorted array (according to the given sort descriptors).
     func insertionIndex(of element: Element, using sortDescriptors: [NSSortDescriptor]) -> Int {
         return self.insertionIndex(of: element) {
@@ -54,11 +51,10 @@ extension Array where Element: DataSnapshot {
             return (result == .orderedAscending)
         }
     }
-    
 }
 
 extension Array where Element: ResultsSection {
-    
+    /// Returns the result section and index path of the given snapshot.
     func lookup(snapshot: DataSnapshot) -> (section: ResultsSection, path: IndexPath)? {
         for (sectionIdx, section) in enumerated() {
             if let rowIdx = section.index(of: snapshot) {
@@ -67,19 +63,4 @@ extension Array where Element: ResultsSection {
         }
         return nil
     }
-    
-//    func sorted(by sortDescriptors: [NSSortDescriptor]) -> [ResultsSection] {
-//        return self.sorted() {
-//            var result: ComparisonResult = .orderedSame
-//            for sortDescriptor in sortDescriptors {
-//                result = sortDescriptor.compare($0.sectionKeyValue, to: $1.sectionKeyValue)
-//                
-//                if result != .orderedSame {
-//                    break
-//                }
-//            }
-//            return (result == .orderedAscending)
-//        }
-//    }
-    
 }

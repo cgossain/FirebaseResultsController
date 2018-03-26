@@ -10,7 +10,6 @@ import Foundation
 import FirebaseDatabase
 
 public class ResultsSection {
-    
     /// Name of the section.
     public var name: String { return sectionKeyValue }
     
@@ -26,6 +25,8 @@ public class ResultsSection {
     /// The sort descriptors being used to sorts items in this section.
     let sortDescriptors: [NSSortDescriptor]?
     
+    
+    // MARK: - Lifecycle
     /// Initializes a section object with the given section key value and sort descriptors.
     ///
     /// - Parameter sectionKeyValue: The value that represents this section.
@@ -36,6 +37,8 @@ public class ResultsSection {
         self.sortDescriptors = sortDescriptors
     }
     
+    
+    // MARK: - Public
     /// Inserts the given snapshot into the receivers contents and returns the index at which it was inserted.
     @discardableResult
     func insert(snapshot: DataSnapshot) -> Int {
@@ -66,35 +69,23 @@ public class ResultsSection {
 }
 
 extension ResultsSection: CustomStringConvertible {
-    
     public var description: String {
         return "<| Section: \(name), Count: \(numberOfObjects) |>"
     }
-    
 }
 
 extension ResultsSection: Hashable {
-    
     public static func ==(lhs: ResultsSection, rhs: ResultsSection) -> Bool {
-        if !lhs.sectionKeyValue.isEqual(rhs.sectionKeyValue) {
-            return false
-        }
-        
-        // check the objects too??
-        
-        return true
+        return lhs.sectionKeyValue == rhs.sectionKeyValue
     }
     
     public var hashValue: Int { return sectionKeyValue.hashValue }
-    
 }
 
 extension ResultsSection: NSCopying {
-    
     public func copy(with zone: NSZone? = nil) -> Any {
         let section = ResultsSection(sectionKeyValue: sectionKeyValue, sortDescriptors: sortDescriptors)
         section.objects = objects
         return section
     }
-    
 }

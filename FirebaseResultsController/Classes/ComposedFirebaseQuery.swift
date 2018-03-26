@@ -20,7 +20,6 @@ public protocol ComposedFirebaseQueryDelegate: class {
 /// The ComposedFirebaseQuery is a simple class where multiple DatabaseQuery instances can be added. When `performFetch()` is called, each individual query is started
 /// but the overall delegate is not called until all queries have returned results.
 public class ComposedFirebaseQuery {
-    
     /// The object that is notified when the query results change.
     public weak var delegate: ComposedFirebaseQueryDelegate?
     
@@ -54,7 +53,6 @@ public class ComposedFirebaseQuery {
     
     // MARK: - Lifecycle
     public init() {
-        
     }
     
     deinit {
@@ -63,7 +61,6 @@ public class ComposedFirebaseQuery {
     
     
     // MARK: - Public
-    
     /// Adds a query to be fetched.
     public func add(query: DatabaseQuery, forIdentifier identifier: String) {
         queriesByIdentifier[identifier] = query

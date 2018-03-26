@@ -10,7 +10,6 @@ import Foundation
 import FirebaseDatabase
 import Dwifft
 
-
 /// A FetchResultChanges object provides detailed information about the differences between two fetch
 /// results. The changes object provides information useful for updating a UI that lists the contents
 /// of a fetch result, such as the indexes of added, removed, and rearranged objects.
@@ -51,50 +50,53 @@ public struct FetchResultChanges {
     
     
     // MARK: - Lifecycle
-    
     /// Creates a diff between two fetch result objects.
-    /// - Param fromResult: The fetch result object with the state of objects before the change.
-    /// - Param toResult: The fetch result object with the state of objects after the change.
-    /// - Param changedObjects: The objects in the fetch result whose content been updated.
-    init(from fromResult: FetchResult, to toResult: FetchResult, changedObjects: [DataSnapshot]) {
+    ///
+    /// - parameters:
+    ///     - fromResult: The fetch result object with the state of objects before the change.
+    ///     - toResult: The fetch result object with the state of objects after the change.
+    ///     - changedObjects: The objects in the fetch result whose content been updated.
+    init(fromResult: FetchResult, toResult: FetchResult, changedObjects: [DataSnapshot]) {
         fetchResultBeforeChanges = fromResult
         fetchResultAfterChanges = toResult
         
         var mutableChangedObjects = changedObjects
         
-        // compute the diff
+        // compute the sections diff
         let sectionsDiff = fetchResultBeforeChanges.sectionKeyValues.diff(fetchResultAfterChanges.sectionKeyValues)
+        
+        // compute the rows diff
         let rowsDiff = fetchResultBeforeChanges.results.diff(fetchResultAfterChanges.results)
         
-        
-        // get removed sections
+        // compute removed sections
         var removedSections: [Section] = []
         for removed in sectionsDiff.deletions {
             removedSections.append(Section(idx: removed.idx, section: fetchResultBeforeChanges.sections[removed.idx]))
         }
         self.removedSections = removedSections
         
-        
-        // get inserted sections
+        // compute inserted sections
         var insertedSections: [Section] = []
         for inserted in sectionsDiff.insertions {
             insertedSections.append(Section(idx: inserted.idx, section: fetchResultAfterChanges.sections[inserted.idx]))
         }
         self.insertedSections = insertedSections
         
-        
-        // extract the moves from the rows diff
+        // prep to compute moved rows
         var deletions = rowsDiff.deletions
         var insertions = rowsDiff.insertions
         var moves: [(from: DiffStep<DataSnapshot>, to: DiffStep<DataSnapshot>)] = []
         
-        // moves will be the diffs that appear both as deletions and insertions
+        // Note that moves represent a special type of change. The row diffs correctly compute all inserted and deleted rows, so we need to
+        // manually extract/interpret moves. A move will be interpreted as a deleted row that has also been inserted. The following routine
+        // will extract all moves.
         for deletion in deletions {
             if let insertion = insertions.filter({ $0.value.key == deletion.value.key }).first {                
                 moves.append((from: deletion, to: insertion))
             }
         }
         
+        // avoid double dipping by removing moves from the deletions and insertions arrays
         for move in moves {
             // remove the deletions that will be handled in the move
             if let idx = deletions.index(where: { $0.value.key == move.from.value.key }) {
@@ -107,8 +109,7 @@ public struct FetchResultChanges {
             }
         }
         
-        
-        // get inserted rows
+        // compute inserted rows
         var insertedRows: [Row] = []
         for inserted in insertions {
             // convert the overall index to the appropriate section
@@ -129,8 +130,7 @@ public struct FetchResultChanges {
         }
         self.insertedRows = insertedRows
         
-        
-        // get deleted rows
+        // compute deleted rows
         var removedRows: [Row] = []
         for removed in deletions {
             // convert the overall index to the appropriate section
@@ -151,8 +151,7 @@ public struct FetchResultChanges {
         }
         self.removedRows = removedRows
         
-        
-        // get moved rows
+        // compute moved rows
         var movedRows: [(from: Row, to: Row)] = []
         for move in moves {
             guard let fromSectionIdx = fetchResultBeforeChanges.sectionIndex(for: move.from.value) else {
@@ -191,8 +190,7 @@ public struct FetchResultChanges {
         }
         self.movedRows = movedRows
         
-        
-        // get changed rows
+        // compute changed/updated rows
         var changedRows: [Row] = []
         for changed in mutableChangedObjects {
             guard let path = fetchResultBeforeChanges.sections.lookup(snapshot: changed)?.path else {
@@ -206,7 +204,6 @@ public struct FetchResultChanges {
     
     
     // MARK: - Public
-    
     /// Convenience method that enumerates all the section changes described by the receiver.
     public func enumerateSectionChanges(_ body: ((_ section: ResultsSection, _ sectionIndex: Int, _ type: ResultsChangeType) -> Void)) {
         // removed sections
