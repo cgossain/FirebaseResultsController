@@ -49,7 +49,7 @@ extension FirebaseFetchRequest: NSCopying {
         copiedFetchRequest.predicate = predicate?.copy() as? NSPredicate
         
         // copy the sort descriptors
-        copiedFetchRequest.sortDescriptors = sortDescriptors?.flatMap({ $0.copy() as? NSSortDescriptor })
+        copiedFetchRequest.sortDescriptors = sortDescriptors?.compactMap({ $0.copy() as? NSSortDescriptor })
         
         // return the copied fetch request
         return copiedFetchRequest
