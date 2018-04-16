@@ -11,14 +11,10 @@ Pod::Spec.new do |s|
   s.license          = { :type => 'MIT', :file => 'LICENSE' }
   s.author           = { 'Christian Gossain' => 'cgossain@gmail.com' }
   s.source           = { :git => 'https://github.com/cgossain/FirebaseResultsController.git', :tag => s.version.to_s }
-  s.module_name = 'FirebaseResultsController'
   s.swift_version = '4.0'
   s.static_framework = true
-
   s.ios.deployment_target = '9.0'
-
   s.source_files = 'FirebaseResultsController/Classes/**/*'
-
   s.dependency 'Dwifft', '0.5'
   s.dependency 'Firebase/Database'
 end
