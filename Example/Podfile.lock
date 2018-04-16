@@ -1,18 +1,18 @@
 PODS:
   - Dwifft (0.5)
-  - Firebase/Core (4.11.0):
-    - FirebaseAnalytics (= 4.1.0)
-    - FirebaseCore (= 4.0.18)
-  - Firebase/Database (4.11.0):
+  - Firebase/Core (4.13.0):
+    - FirebaseAnalytics (= 4.2.0)
+    - FirebaseCore (= 4.0.20)
+  - Firebase/Database (4.13.0):
     - Firebase/Core
     - FirebaseDatabase (= 4.1.5)
-  - FirebaseAnalytics (4.1.0):
+  - FirebaseAnalytics (4.2.0):
     - FirebaseCore (~> 4.0)
     - FirebaseInstanceID (~> 2.0)
-    - GoogleToolboxForMac/NSData+zlib (~> 2.1)
+    - "GoogleToolboxForMac/NSData+zlib (~> 2.1)"
     - nanopb (~> 0.3)
-  - FirebaseCore (4.0.18):
-    - GoogleToolboxForMac/NSData+zlib (~> 2.1)
+  - FirebaseCore (4.0.20):
+    - "GoogleToolboxForMac/NSData+zlib (~> 2.1)"
   - FirebaseDatabase (4.1.5):
     - FirebaseAnalytics (~> 4.1)
     - FirebaseCore (~> 4.0)
@@ -23,7 +23,7 @@ PODS:
     - Dwifft (= 0.5)
     - Firebase/Database
   - GoogleToolboxForMac/Defines (2.1.3)
-  - GoogleToolboxForMac/NSData+zlib (2.1.3):
+  - "GoogleToolboxForMac/NSData+zlib (2.1.3)":
     - GoogleToolboxForMac/Defines (= 2.1.3)
   - leveldb-library (1.20)
   - nanopb (0.3.8):
@@ -35,22 +35,34 @@ PODS:
 DEPENDENCIES:
   - FirebaseResultsController (from `../`)
 
+SPEC REPOS:
+  https://github.com/CocoaPods/Specs.git:
+    - Dwifft
+    - Firebase
+    - FirebaseAnalytics
+    - FirebaseCore
+    - FirebaseDatabase
+    - FirebaseInstanceID
+    - GoogleToolboxForMac
+    - leveldb-library
+    - nanopb
+
 EXTERNAL SOURCES:
   FirebaseResultsController:
-    :path: ../
+    :path: "../"
 
 SPEC CHECKSUMS:
   Dwifft: 9b7f1e55950e27b9dcdbb4d48502625cb4690b97
-  Firebase: cc13dfab1038c8b45d7903e01fc690451d6d0b24
-  FirebaseAnalytics: 3dfae28d4a5e06f86c4fae830efc2ad3fadb19bc
-  FirebaseCore: b981f47e5254cbcfdeb483355300d743f6fcab2c
+  Firebase: 5ec5e863d269d82d66b4bf56856726f8fb8f0fb3
+  FirebaseAnalytics: 7ef69e76a5142f643aeb47c780e1cdce4e23632e
+  FirebaseCore: 90cb1c53d69b556f112a1bf72b5fcfaad7650790
   FirebaseDatabase: 5f0bc6134c5c237cf55f9e1249d406770a75eafd
   FirebaseInstanceID: 8d20d890d65c917f9f7d9950b6e10a760ad34321
-  FirebaseResultsController: 458fa825d74c8f85cb6e56b64e4370807a054477
+  FirebaseResultsController: 5168067cb4a7291c602c8dcc9b1c2a70939810f0
   GoogleToolboxForMac: 2501e2ad72a52eb3dfe7bd9aee7dad11b858bd20
   leveldb-library: 08cba283675b7ed2d99629a4bc5fd052cd2bb6a5
   nanopb: 5601e6bca2dbf1ed831b519092ec110f66982ca3
 
-PODFILE CHECKSUM: be501dbe0cedc9f9c99d3d4301a4a7e53ce7cc2c
+PODFILE CHECKSUM: 5bbacade77ea18ce4085917194bec033703d15a3
 
-COCOAPODS: 1.4.0
+COCOAPODS: 1.5.0

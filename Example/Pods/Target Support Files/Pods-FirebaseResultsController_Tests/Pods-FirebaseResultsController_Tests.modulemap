@@ -1,6 +1,0 @@
-framework module Pods_FirebaseResultsController_Tests {
-  umbrella header "Pods-FirebaseResultsController_Tests-umbrella.h"
-
-  export *
-  module * { export * }
-}

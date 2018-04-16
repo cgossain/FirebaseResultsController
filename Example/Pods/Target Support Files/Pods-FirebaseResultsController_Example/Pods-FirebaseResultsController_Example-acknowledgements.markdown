@@ -49,7 +49,7 @@ Copyright 2018 Google
 
 ## FirebaseResultsController
 
-Copyright (c) 2017 cgossain@gmail.com <cgossain@gmail.com>
+Copyright (c) 2017-2018 Christian Gossain
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

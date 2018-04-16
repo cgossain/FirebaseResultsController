@@ -2,14 +2,5 @@ platform :ios, '9.0'
 use_frameworks!
 
 target 'FirebaseResultsController_Example' do
-#  pod 'Firebase/Core'
-#  pod 'Firebase/Database'
-#  pod 'Firebase/Auth'
-#  pod 'Firebase/AdMob'
-#  pod 'Firebase/Messaging'
   pod 'FirebaseResultsController', :path => '../'
-
-  target 'FirebaseResultsController_Tests' do
-    inherit! :search_paths
-  end
 end
