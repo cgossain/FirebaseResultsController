@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'FirebaseResultsController'
-  s.version          = '0.1.0'
+  s.version          = '0.2.0'
   s.summary          = 'An NSFetchedResultsController replacement for Firebase, written in Swift.'
   s.description      = <<-DESC
                         The FirebaseResultsController is an NSFetchedResultsController replacement that allows you to monitor (fetch, filter, sort, section, and diff) data stored in a Firebase Realtime Database.
@@ -16,5 +16,6 @@ Pod::Spec.new do |s|
   s.ios.deployment_target = '9.0'
   s.source_files = 'FirebaseResultsController/Classes/**/*'
   s.dependency 'Dwifft', '0.5'
+  s.dependency 'Firebase/Core'
   s.dependency 'Firebase/Database'
 end
