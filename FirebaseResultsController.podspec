@@ -15,7 +15,7 @@ Pod::Spec.new do |s|
   s.static_framework = true
   s.ios.deployment_target = '9.3'
   s.source_files = 'FirebaseResultsController/Classes/**/*'
-  s.dependency 'Dwifft', '0.5'
+  s.dependency 'Dwifft', '~> 0.9'
   s.dependency 'Firebase/Core'
   s.dependency 'Firebase/Database'
 end

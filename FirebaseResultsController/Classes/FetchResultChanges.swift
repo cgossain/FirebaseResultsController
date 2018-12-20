@@ -1,7 +1,7 @@
 //
 //  FetchResultChanges.swift
 //
-//  Copyright (c) 2017-2018 Christian Gossain
+//  Copyright (c) 2017-2019 Christian Gossain
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,18 @@
 import Foundation
 import FirebaseDatabase
 import Dwifft
+
+/// Simplifies filtering.
+fileprivate extension DiffStep {
+    var isInserted: Bool {
+        switch self {
+        case .insert(_, _):
+            return true
+        case .delete(_, _):
+            return false
+        }
+    }
+}
 
 /// A FetchResultChanges object provides detailed information about the differences between two fetch
 /// results. The changes object provides information useful for updating a UI that lists the contents
@@ -79,28 +91,20 @@ public struct FetchResultChanges {
         var mutableChangedObjects = changedObjects
         
         // compute the sections diff
-        let sectionsDiff = fetchResultBeforeChanges.sectionKeyValues.diff(fetchResultAfterChanges.sectionKeyValues)
+        let sectionsDiff = Dwifft.diff(fetchResultBeforeChanges.sectionKeyValues, fetchResultAfterChanges.sectionKeyValues)
         
         // compute the rows diff
-        let rowsDiff = fetchResultBeforeChanges.results.diff(fetchResultAfterChanges.results)
+        let rowsDiff = Dwifft.diff(fetchResultBeforeChanges.results, fetchResultAfterChanges.results)
         
-        // compute removed sections
-        var removedSections: [Section] = []
-        for removed in sectionsDiff.deletions {
-            removedSections.append(Section(idx: removed.idx, section: fetchResultBeforeChanges.sections[removed.idx]))
-        }
-        self.removedSections = removedSections
+        // compute deleted sections
+        self.removedSections = sectionsDiff.filter({ !$0.isInserted }).map({ Section(idx: $0.idx, section: fetchResultBeforeChanges.sections[$0.idx]) })
         
         // compute inserted sections
-        var insertedSections: [Section] = []
-        for inserted in sectionsDiff.insertions {
-            insertedSections.append(Section(idx: inserted.idx, section: fetchResultAfterChanges.sections[inserted.idx]))
-        }
-        self.insertedSections = insertedSections
+        self.insertedSections = sectionsDiff.filter({ $0.isInserted }).map({ Section(idx: $0.idx, section: fetchResultAfterChanges.sections[$0.idx]) })
         
         // prep to compute moved rows
-        var deletions = rowsDiff.deletions
-        var insertions = rowsDiff.insertions
+        var deletions = rowsDiff.filter({ !$0.isInserted })
+        var insertions = rowsDiff.filter({ $0.isInserted })
         var moves: [(from: DiffStep<DataSnapshot>, to: DiffStep<DataSnapshot>)] = []
         
         // Note that moves represent a special type of change. The row diffs correctly compute all inserted and deleted rows, so we need to

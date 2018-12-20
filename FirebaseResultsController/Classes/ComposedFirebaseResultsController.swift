@@ -1,7 +1,7 @@
 //
 //  ComposedFirebaseResultsController.swift
 //
-//  Copyright (c) 2017-2018 Christian Gossain
+//  Copyright (c) 2017-2019 Christian Gossain
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files (the "Software"), to deal
@@ -96,8 +96,11 @@ public class ComposedFirebaseResultsController {
     }
     
     
-    /// Executes the fetch described by the fetch request. You must call this method to start fetching the initial data and to setup the query observers.
-    /// If you change the sort decriptors or predicate on the fetch request, you must call this method to reconfigure the receiver for the updated fetch request.
+    /// Executes the fetch described by the fetch request. You must call this method to start fetching the initial
+    /// data and to setup the query observers.
+    ///
+    /// - important: If you change the sort decriptors or predicate on the fetch request, you must call this method
+    ///              to reconfigure the receiver for the updated fetch request.
     public func performFetch() {
         // start the fetch on each controller
         for controller in controllers {
