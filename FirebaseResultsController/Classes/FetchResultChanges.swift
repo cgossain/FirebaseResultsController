@@ -200,14 +200,12 @@ public struct FetchResultChanges {
             let toRowIdx = move.to.idx - toSectionOffset
             let toPath = IndexPath(row: toRowIdx, section: toSectionIdx)
             
-            // if the index paths have actually changed track this as a move
-            if fromPath != toPath {
-                movedRows.append((from: Row(indexPath: fromPath, value: move.from.value), to: Row(indexPath: toPath, value: move.to.value)))
-                
-                // remove moved objects from the changed objects list
-                if let idx = mutableChangedObjects.index(of: move.to.value) {
-                    mutableChangedObjects.remove(at: idx)
-                }
+            // track the moved row
+            movedRows.append((from: Row(indexPath: fromPath, value: move.from.value), to: Row(indexPath: toPath, value: move.to.value)))
+            
+            // remove moved objects from the changed objects list, this ensures it does not get tracked as a change as well
+            if let idx = mutableChangedObjects.index(of: move.to.value) {
+                mutableChangedObjects.remove(at: idx)
             }
         }
         self.movedRows = movedRows
