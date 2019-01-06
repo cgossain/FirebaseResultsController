@@ -107,16 +107,18 @@ public struct FetchResultChanges {
         var insertions = rowsDiff.filter({ $0.isInserted })
         var moves: [(from: DiffStep<DataSnapshot>, to: DiffStep<DataSnapshot>)] = []
         
-        // Note that moves represent a special type of change. The row diffs correctly compute all inserted and deleted rows, so we need to
-        // manually extract/interpret moves. A move will be interpreted as a deleted row that has also been inserted. The following routine
-        // will extract all moves.
+        // A "move" is a special type of change. Specifically, it involves a row being removed from one location, and then being
+        // inserted at a new location. The following 2 steps will extract moved row from the inserted and deleted lists.
+        
+        // 1. We first need to identify the moved rows by simply checking that a deleted row also shows up as an inserted row.
         for deletion in deletions {
             if let insertion = insertions.filter({ $0.value.key == deletion.value.key }).first {                
                 moves.append((from: deletion, to: insertion))
             }
         }
         
-        // avoid double dipping by removing moves from the deletions and insertions arrays
+        // 2. Once we've identified our moved rows, we need to remove those rows from both the deletions and insertions lists so as not
+        // to "double dip". In otherwords we are saying that we will interpret those specific insertions and deletions as moves.
         for move in moves {
             // remove the deletions that will be handled in the move
             if let idx = deletions.index(where: { $0.value.key == move.from.value.key }) {

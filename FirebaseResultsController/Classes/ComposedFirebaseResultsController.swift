@@ -242,7 +242,6 @@ fileprivate extension ComposedFirebaseResultsController {
             
             // apply row changes
             changes.enumerateRowChanges { (anObject, indexPath, type, newIndexPath) in
-                
                 // translate the `indexPath` if specified
                 var compoundIndexPath: IndexPath?
                 if let path = indexPath {
