@@ -121,12 +121,12 @@ public struct FetchResultChanges {
         // to "double dip". In otherwords we are saying that we will interpret those specific insertions and deletions as moves.
         for move in moves {
             // remove the deletions that will be handled in the move
-            if let idx = deletions.index(where: { $0.value.key == move.from.value.key }) {
+            if let idx = deletions.firstIndex(where: { $0.value.key == move.from.value.key }) {
                 deletions.remove(at: idx)
             }
             
             // remove the insertion that will be handled in the move
-            if let idx = insertions.index(where: { $0.value.key == move.to.value.key }) {
+            if let idx = insertions.firstIndex(where: { $0.value.key == move.to.value.key }) {
                 insertions.remove(at: idx)
             }
         }
@@ -204,7 +204,7 @@ public struct FetchResultChanges {
             movedRows.append((from: Row(indexPath: fromPath, value: move.from.value), to: Row(indexPath: toPath, value: move.to.value)))
             
             // remove moved objects from the changed objects list, this ensures it does not get tracked as a change as well
-            if let idx = mutableChangedObjects.index(of: move.to.value) {
+            if let idx = mutableChangedObjects.firstIndex(of: move.to.value) {
                 mutableChangedObjects.remove(at: idx)
             }
         }

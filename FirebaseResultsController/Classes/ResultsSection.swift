@@ -76,7 +76,7 @@ public class ResultsSection {
     
     /// Returns the index of the snapshot in the section, or `nil` if it was not found.
     func index(of snapshot: DataSnapshot) -> Int? {
-        guard let idx = objects.index(where: { $0.key == snapshot.key }) else {
+        guard let idx = objects.firstIndex(where: { $0.key == snapshot.key }) else {
             return nil
         }
         return idx

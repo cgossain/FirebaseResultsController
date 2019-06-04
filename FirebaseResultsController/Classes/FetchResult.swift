@@ -132,7 +132,7 @@ class FetchResult {
         }
         
         // the index has not yet been computed; lets find it then store it to avoid redundant work the next time this function is called
-        guard let idx = sectionKeyValues.index(where: { $0 == sectionKeyValue }) else {
+        guard let idx = sectionKeyValues.firstIndex(where: { $0 == sectionKeyValue }) else {
             return nil
         }
         
@@ -149,7 +149,7 @@ class FetchResult {
         }
         
         // the offset has not yet been computed; lets find it then store it to avoid redundant work the next time this function is called
-        guard let idx = results.index(where: { $0.sectionKeyValue(forSectionNameKeyPath: sectionNameKeyPath) == sectionKeyValue }) else {
+        guard let idx = results.firstIndex(where: { $0.sectionKeyValue(forSectionNameKeyPath: sectionNameKeyPath) == sectionKeyValue }) else {
             return nil
         }
         
@@ -181,7 +181,7 @@ fileprivate extension FetchResult {
     
     /// Removes the snapshot if it exists in the results.
     func delete(snapshot: DataSnapshot) {
-        guard let idx = results.index(where: { $0.key == snapshot.key }) else {
+        guard let idx = results.firstIndex(where: { $0.key == snapshot.key }) else {
             return
         }
         
@@ -199,7 +199,7 @@ fileprivate extension FetchResult {
     func update(snapshot new: DataSnapshot) {
         // since the values will have changed, we cannot remove the "new" version of the snapshot, instead we'll have to locate and remove the "old" version of this snapshot
         // this is important when we are sectionning because the `sectionKeyValue` may have changed
-        guard let idx = results.index(where: { $0.key == new.key }) else {
+        guard let idx = results.firstIndex(where: { $0.key == new.key }) else {
             return
         }
         
