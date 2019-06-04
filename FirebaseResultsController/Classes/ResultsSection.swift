@@ -95,7 +95,9 @@ extension ResultsSection: Hashable {
         return lhs.sectionKeyValue == rhs.sectionKeyValue
     }
     
-    public var hashValue: Int { return sectionKeyValue.hashValue }
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(sectionKeyValue)
+    }
 }
 
 extension ResultsSection: NSCopying {
