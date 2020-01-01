@@ -90,7 +90,7 @@ extension ResultsSection: CustomStringConvertible {
     }
 }
 
-extension ResultsSection: Hashable {
+extension ResultsSection: Equatable, Hashable {
     public static func ==(lhs: ResultsSection, rhs: ResultsSection) -> Bool {
         return lhs.sectionKeyValue == rhs.sectionKeyValue
     }

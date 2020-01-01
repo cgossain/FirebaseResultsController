@@ -241,7 +241,7 @@ fileprivate extension FirebaseResultsController {
     }
 }
 
-extension FirebaseResultsController: Hashable {
+extension FirebaseResultsController: Equatable, Hashable {
     public static func ==(lhs: FirebaseResultsController, rhs: FirebaseResultsController) -> Bool {
         return lhs.fetchRequest.query == rhs.fetchRequest.query
     }
