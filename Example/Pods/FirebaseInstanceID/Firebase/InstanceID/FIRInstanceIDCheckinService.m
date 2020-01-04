@@ -70,14 +70,14 @@ static FIRInstanceIDURLRequestTestBlock testBlock;
 
 - (void)checkinWithExistingCheckin:(FIRInstanceIDCheckinPreferences *)existingCheckin
                         completion:(FIRInstanceIDDeviceCheckinCompletion)completion {
-  _FIRInstanceIDDevAssert(completion != nil, @"completion required");
-
   if (self.session == nil) {
-    FIRInstanceIDLoggerError(kFIRIntsanceIDInvalidNetworkSession,
+    FIRInstanceIDLoggerError(kFIRInstanceIDInvalidNetworkSession,
                              @"Inconsistent state: NSURLSession has been invalidated");
     NSError *error =
         [NSError errorWithFIRInstanceIDErrorCode:kFIRInstanceIDErrorCodeRegistrarFailedToCheckIn];
-    completion(nil, error);
+    if (completion) {
+      completion(nil, error);
+    }
     return;
   }
 
@@ -97,7 +97,9 @@ static FIRInstanceIDURLRequestTestBlock testBlock;
           FIRInstanceIDLoggerDebug(kFIRInstanceIDMessageCodeService000,
                                    @"Device checkin HTTP fetch error. Error Code: %ld",
                                    (long)error.code);
-          completion(nil, error);
+          if (completion) {
+            completion(nil, error);
+          }
           return;
         }
 
@@ -109,7 +111,9 @@ static FIRInstanceIDURLRequestTestBlock testBlock;
           FIRInstanceIDLoggerDebug(kFIRInstanceIDMessageCodeService001,
                                    @"Error serializing json object. Error Code: %ld",
                                    _FIRInstanceID_L(serializationError.code));
-          completion(nil, serializationError);
+          if (completion) {
+            completion(nil, serializationError);
+          }
           return;
         }
 
@@ -118,7 +122,9 @@ static FIRInstanceIDURLRequestTestBlock testBlock;
         if ([deviceAuthID length] == 0) {
           NSError *error =
               [NSError errorWithFIRInstanceIDErrorCode:kFIRInstanceIDErrorCodeInvalidRequest];
-          completion(nil, error);
+          if (completion) {
+            completion(nil, error);
+          }
           return;
         }
 
@@ -151,8 +157,9 @@ static FIRInstanceIDURLRequestTestBlock testBlock;
           if (dict[@"name"] && dict[@"value"]) {
             gservicesData[dict[@"name"]] = dict[@"value"];
           } else {
-            _FIRInstanceIDDevAssert(NO, @"Invalid setting in checkin response: (%@: %@)",
-                                    dict[@"name"], dict[@"value"]);
+            FIRInstanceIDLoggerDebug(kFIRInstanceIDInvalidSettingResponse,
+                                     @"Invalid setting in checkin response: (%@: %@)",
+                                     dict[@"name"], dict[@"value"]);
           }
         }
 
@@ -167,7 +174,9 @@ static FIRInstanceIDURLRequestTestBlock testBlock;
           kFIRInstanceIDDeviceDataVersionKey : deviceDataVersionInfo,
         };
         [checkinPreferences updateWithCheckinPlistContents:preferences];
-        completion(checkinPreferences, nil);
+        if (completion) {
+          completion(checkinPreferences, nil);
+        }
       };
   // Test block
   if (testBlock) {
@@ -201,6 +210,9 @@ static FIRInstanceIDURLRequestTestBlock testBlock;
   NSInteger userNumber = 0;        // Multi Profile may change this.
   NSInteger userSerialNumber = 0;  // Multi Profile may change this
 
+  // This ID is generated for logging purpose and it is only logged for performance
+  // information for backend, not secure information.
+  // TODO(chliang): Talk to backend team to see if this ID is still needed.
   uint32_t loggingID = arc4random();
   NSString *timeZone = [NSTimeZone localTimeZone].name;
   int64_t lastCheckingTimestampMillis = checkinPreferences.lastCheckinTimestampMillis;
@@ -217,7 +229,7 @@ static FIRInstanceIDURLRequestTestBlock testBlock;
     @"locale" : locale,
     @"version" : @(kCheckinVersion),
     @"digest" : checkinPreferences.digest ?: @"",
-    @"timezone" : timeZone,
+    @"time_zone" : timeZone,
     @"user_serial_number" : @(userSerialNumber),
     @"id" : @([checkinPreferences.deviceID longLongValue]),
     @"security_token" : @([checkinPreferences.secretToken longLongValue]),

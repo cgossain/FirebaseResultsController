@@ -18,7 +18,7 @@
   "platforms": {
     "ios": "10.3"
   },
-  "swift_version": "5.0",
+  "swift_versions": "5.0",
   "static_framework": true,
   "source_files": "FirebaseResultsController/Classes/**/*",
   "dependencies": {
@@ -31,5 +31,6 @@
     "Firebase/Database": [
 
     ]
-  }
+  },
+  "swift_version": "5.0"
 }
