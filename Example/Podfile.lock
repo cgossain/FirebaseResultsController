@@ -1,4 +1,5 @@
 PODS:
+  - Debounce (1.0.0)
   - Dwifft (0.9)
   - Firebase/Core (6.14.0):
     - Firebase/CoreOnly
@@ -38,7 +39,8 @@ PODS:
     - FirebaseCore (~> 6.5)
     - GoogleUtilities/Environment (~> 6.4)
     - GoogleUtilities/UserDefaults (~> 6.4)
-  - FirebaseResultsController (1.0.1):
+  - FirebaseResultsController (1.0.2):
+    - Debounce
     - Dwifft (~> 0.9)
     - Firebase/Core
     - Firebase/Database
@@ -78,6 +80,7 @@ PODS:
   - nanopb/encode (0.3.9011)
 
 DEPENDENCIES:
+  - Debounce (from `../../Debounce`)
   - FirebaseResultsController (from `../`)
 
 SPEC REPOS:
@@ -99,10 +102,13 @@ SPEC REPOS:
     - nanopb
 
 EXTERNAL SOURCES:
+  Debounce:
+    :path: "../../Debounce"
   FirebaseResultsController:
     :path: "../"
 
 SPEC CHECKSUMS:
+  Debounce: 2f6caed77958a20426ea21426ce3f5ef42232522
   Dwifft: 42912068ed2a8146077d1a1404df18625bd086e1
   Firebase: 0219bb4782eb1406f1b9b0628a2e625484ce910d
   FirebaseAnalytics: f68b9f3f1241385129ae0a83b63627fc420c05e5
@@ -112,7 +118,7 @@ SPEC CHECKSUMS:
   FirebaseCoreDiagnosticsInterop: e9b1b023157e3a2fc6418b5cb601e79b9af7b3a0
   FirebaseDatabase: 9db0c9bb6d3308870cc831a8a6d70c82fd169f37
   FirebaseInstanceID: ce993a3c3670a8f5d47ce371ac5d143c560608c5
-  FirebaseResultsController: 9bac81e51f92c05a52ac3b0c6c6c6fac0237a780
+  FirebaseResultsController: 09010eb820094d16a0b974e36a6a22a60602f4a5
   GoogleAppMeasurement: db118eb61a97dd8c4f7014e368d3c335cbbcf80a
   GoogleDataTransport: 8e9b210c97d55fbff306cc5468ff91b9cb32dcf5
   GoogleDataTransportCCTSupport: 202d7cdf9c4a7d81a2bb7f7e7e1ba6faa421b1f2
@@ -120,6 +126,6 @@ SPEC CHECKSUMS:
   leveldb-library: 55d93ee664b4007aac644a782d11da33fba316f7
   nanopb: 18003b5e52dab79db540fe93fe9579f399bd1ccd
 
-PODFILE CHECKSUM: 21b60f6101dad6d0fea266addb0e179edaf02619
+PODFILE CHECKSUM: 9d045ab23cd756d05fff5bc58a5f08372723348f
 
 COCOAPODS: 1.8.4

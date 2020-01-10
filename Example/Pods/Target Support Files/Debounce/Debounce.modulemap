@@ -1,0 +1,6 @@
+framework module Debounce {
+  umbrella header "Debounce-umbrella.h"
+
+  export *
+  module * { export * }
+}

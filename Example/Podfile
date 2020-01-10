@@ -1,6 +1,8 @@
-platform :ios, '10.3'
+platform :ios, '11.4'
 use_frameworks!
 
 target 'FirebaseResultsController_Example' do
+  pod 'Debounce', :path => '../../Debounce'
   pod 'FirebaseResultsController', :path => '../'
+  
 end
