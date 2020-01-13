@@ -42,7 +42,7 @@ public class ComposedFirebaseQuery {
     /// Set to true if changes should not be batched, but rather processed as soon as they are received.
     public var processesChangesImmediately = false {
         didSet {
-            batchingController.processesChangesImmediately = processesChangesImmediately
+            batchController.processesChangesImmediately = processesChangesImmediately
         }
     }
     
@@ -59,8 +59,8 @@ public class ComposedFirebaseQuery {
     fileprivate var resultsByIdentifier: [String: DataSnapshot] = [:]
     
     /// The internal batching controller instance.
-    fileprivate lazy var batchingController: BatchingController = {
-        let controller = BatchingController()
+    fileprivate lazy var batchController: BatchController = {
+        let controller = BatchController()
         controller.delegate = self
         controller.processesChangesImmediately = self.processesChangesImmediately
         return controller
@@ -69,6 +69,7 @@ public class ComposedFirebaseQuery {
     
     // MARK: - Lifecycle
     public init() {
+        
     }
     
     deinit {
@@ -102,7 +103,7 @@ public class ComposedFirebaseQuery {
                 strongSelf.resultsByIdentifier[identifier] = snapshot
                 
                 // notify the batching controller
-                strongSelf.batchingController.update(snapshot)
+                strongSelf.batchController.update(snapshot)
             })
         }
     }
@@ -127,12 +128,12 @@ fileprivate extension ComposedFirebaseQuery {
     }
 }
 
-extension ComposedFirebaseQuery: BatchingControllerDelegate {
-    func controllerWillBeginBatchingChanges(_ controller: BatchingController) {
+extension ComposedFirebaseQuery: BatchControllerDelegate {
+    func controllerWillBeginBatchingChanges(_ controller: BatchController) {
         delegate?.queryWillChangeContent(self)
     }
     
-    func controller(_ controller: BatchingController, finishedBatchingWithInserted inserted: Set<DataSnapshot>, changed: Set<DataSnapshot>, removed: Set<DataSnapshot>) {
+    func controller(_ controller: BatchController, finishedBatchingWithInserted inserted: Set<DataSnapshot>, changed: Set<DataSnapshot>, removed: Set<DataSnapshot>) {
         // update the state
         state = .loaded
         

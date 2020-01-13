@@ -46,9 +46,7 @@ class ViewController: UITableViewController {
     }()
     
     lazy var compoundResultsController: ComposedFirebaseResultsController = {
-        let controller = ComposedFirebaseResultsController(controllers: [self.resultsController1,
-                                                                         self.resultsController2], composedQuery: nil)
-        
+        let controller = ComposedFirebaseResultsController(controllers: [self.resultsController1, self.resultsController2], composedQuery: nil)
         controller.delegate = self
         return controller
     }()

@@ -179,22 +179,6 @@ fileprivate extension FetchResult {
         sectionsBySectionKeyValue[sectionKeyValue] = section
     }
     
-    /// Removes the snapshot if it exists in the results.
-    func delete(snapshot: DataSnapshot) {
-        guard let idx = results.firstIndex(where: { $0.key == snapshot.key }) else {
-            return
-        }
-        
-        // remove the snapshot
-        results.remove(at: idx)
-        
-        // update/remove the section
-        let sectionKeyValue = snapshot.sectionKeyValue(forSectionNameKeyPath: sectionNameKeyPath)
-        let section = sectionsBySectionKeyValue[sectionKeyValue]! // force unwrap; there is something wrong at this point if the force unwrap does not work (since it exists in the `results` array)
-        section.remove(snapshot: snapshot)
-        sectionsBySectionKeyValue[sectionKeyValue] = section.numberOfObjects < 1 ? nil : section
-    }
-    
     /// Replaces the existing version of the snapshot with the specified one.
     func update(snapshot new: DataSnapshot) {
         // since the values will have changed, we cannot remove the "new" version of the snapshot, instead we'll have to locate and remove the "old" version of this snapshot
@@ -209,6 +193,22 @@ fileprivate extension FetchResult {
         
         // insert the updated version of the snapshot
         insert(snapshot: new)
+    }
+    
+    /// Removes the snapshot if it exists in the results.
+    func delete(snapshot: DataSnapshot) {
+        guard let idx = results.firstIndex(where: { $0.key == snapshot.key }) else {
+            return
+        }
+        
+        // remove the snapshot
+        results.remove(at: idx)
+        
+        // update/remove the section
+        let sectionKeyValue = snapshot.sectionKeyValue(forSectionNameKeyPath: sectionNameKeyPath)
+        let section = sectionsBySectionKeyValue[sectionKeyValue]! // force unwrap; there is something wrong at this point if the force unwrap does not work (since it exists in the `results` array)
+        section.remove(snapshot: snapshot)
+        sectionsBySectionKeyValue[sectionKeyValue] = section.numberOfObjects < 1 ? nil : section
     }
 }
 

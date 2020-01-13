@@ -93,8 +93,8 @@ public class FirebaseResultsController {
     /// A value that associates a call to `performFetch` with the data returned for that fetch.
     fileprivate var currentFetchHandle = 0
     
-    /// The batching controller for the current fetch request.
-    fileprivate var batchingController: BatchingController!
+    /// The batch controller for the current fetch request.
+    fileprivate var batchController: BatchController!
     
     /// The current fetch results state.
     fileprivate var currentFetchResult: FetchResult!
@@ -132,8 +132,8 @@ public class FirebaseResultsController {
         state = .loading
         
         // create a new batching controller for this fetch
-        batchingController = BatchingController()
-        batchingController.delegate = self
+        batchController = BatchController()
+        batchController.delegate = self
         
         // update the active fetch request (specifically, we are interested in capture the state of the predicate and sort descriptors is what we are interested in here, since the query can't change)
         let activeFetchRequest = fetchRequest.copy() as! FirebaseFetchRequest
@@ -232,10 +232,9 @@ fileprivate extension FirebaseResultsController {
                 return
             }
             
+            // process batch as soon as all the data is available
             if handle == strongSelf.currentFetchHandle {
-                
-                // process batch as soon as all the data is available
-                strongSelf.batchingController.processBatch()
+                strongSelf.batchController.processBatch()
             }
         })
     }
@@ -251,12 +250,12 @@ extension FirebaseResultsController: Equatable, Hashable {
     }
 }
 
-extension FirebaseResultsController: BatchingControllerDelegate {
-    func controllerWillBeginBatchingChanges(_ controller: BatchingController) {
+extension FirebaseResultsController: BatchControllerDelegate {
+    func controllerWillBeginBatchingChanges(_ controller: BatchController) {
         delegate?.controllerWillChangeContent(self)
     }
     
-    func controller(_ controller: BatchingController, finishedBatchingWithInserted inserted: Set<DataSnapshot>, changed: Set<DataSnapshot>, removed: Set<DataSnapshot>) {
+    func controller(_ controller: BatchController, finishedBatchingWithInserted inserted: Set<DataSnapshot>, changed: Set<DataSnapshot>, removed: Set<DataSnapshot>) {
         // update the state
         state = .loaded
         
@@ -282,14 +281,14 @@ extension FirebaseResultsController: BatchingControllerDelegate {
 
 fileprivate extension FirebaseResultsController {
     func handle(inserted: DataSnapshot) {
-        batchingController.insert(inserted)
+        batchController.insert(inserted)
     }
     
     func handle(updated: DataSnapshot) {
-        batchingController.update(updated)
+        batchController.update(updated)
     }
     
     func handle(removed: DataSnapshot) {
-        batchingController.remove(removed)
+        batchController.remove(removed)
     }
 }
