@@ -175,8 +175,8 @@ public class FirebaseResultsController {
     
 }
 
-fileprivate extension FirebaseResultsController {
-    func unregisterQueryObservers() {
+extension FirebaseResultsController {
+    private func unregisterQueryObservers() {
         fetchRequest.query.removeObserver(withHandle: childAddedHandle)
         fetchRequest.query.removeObserver(withHandle: childChangedHandle)
         fetchRequest.query.removeObserver(withHandle: childMovedHandle)
@@ -184,7 +184,7 @@ fileprivate extension FirebaseResultsController {
         fetchRequest.query.removeObserver(withHandle: valueHandle)
     }
     
-    func registerQueryObservers() {
+    private func registerQueryObservers() {
         let handle = currentFetchHandle
         
         childAddedHandle = fetchRequest.query.observe(.childAdded, with: { [weak self] (snapshot) in
@@ -240,6 +240,20 @@ fileprivate extension FirebaseResultsController {
     }
 }
 
+extension FirebaseResultsController {
+    private func handle(inserted: DataSnapshot) {
+        batchController.insert(inserted)
+    }
+    
+    private func handle(updated: DataSnapshot) {
+        batchController.update(updated)
+    }
+    
+    private func handle(removed: DataSnapshot) {
+        batchController.remove(removed)
+    }
+}
+
 extension FirebaseResultsController: Equatable, Hashable {
     public static func ==(lhs: FirebaseResultsController, rhs: FirebaseResultsController) -> Bool {
         return lhs.fetchRequest.query == rhs.fetchRequest.query
@@ -279,16 +293,8 @@ extension FirebaseResultsController: BatchControllerDelegate {
     }
 }
 
-fileprivate extension FirebaseResultsController {
-    func handle(inserted: DataSnapshot) {
-        batchController.insert(inserted)
-    }
-    
-    func handle(updated: DataSnapshot) {
-        batchController.update(updated)
-    }
-    
-    func handle(removed: DataSnapshot) {
-        batchController.remove(removed)
+extension FirebaseResultsController: CustomStringConvertible {
+    public var description: String {
+        return currentFetchResult.description
     }
 }

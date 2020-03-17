@@ -27,7 +27,7 @@ import FirebaseDatabase
 import Dwifft
 
 /// Simplifies filtering.
-fileprivate extension DiffStep {
+private extension DiffStep {
     var isInserted: Bool {
         switch self {
         case .insert(_, _):
@@ -59,22 +59,22 @@ public struct FetchResultChanges {
     let fetchResultAfterChanges: FetchResult
     
     /// The indexes of the removed sections, relative to the 'before' state.
-    public fileprivate(set) var removedSections: [Section]?
+    public private(set) var removedSections: [Section]?
     
     /// The index paths of the removed rows, relative to the 'before' state.
-    public fileprivate(set) var removedRows: [Row]?
+    public private(set) var removedRows: [Row]?
 
     /// The indexes of the inserted sections, relative to the 'before' state, after deletions have been applied.
-    public fileprivate(set) var insertedSections: [Section]?
+    public private(set) var insertedSections: [Section]?
     
     /// The index paths of the inserted rows, relative to the 'before' state, after deletions have been applied.
-    public fileprivate(set) var insertedRows: [Row]?
+    public private(set) var insertedRows: [Row]?
     
     /// The index paths of the moved rows.
-    public fileprivate(set) var movedRows: [(from: Row, to: Row)]?
+    public private(set) var movedRows: [(from: Row, to: Row)]?
     
     /// The index paths of the changed rows, relative to the 'before' state.
-    public fileprivate(set) var changedRows: [Row]?
+    public private(set) var changedRows: [Row]?
     
     
     // MARK: - Lifecycle
@@ -271,5 +271,60 @@ public struct FetchResultChanges {
             }
         }
     }
-    
+}
+
+extension FetchResultChanges: CustomStringConvertible {
+    public var description: String {
+        var components: [String] = []
+        
+        // TODO: DESCRIBE ROW OPS BY SECTION
+        
+        // SECTION INSERTION/REMOVAL
+        // S{SECTION_IDX:IN:SECTION_NAME:SECTION_COUNT} // e.g. S{2:IN:Breakfast:5} - Section inserted at index 2 with section named "Breakfast" and with 5 items
+        // S{SECTION_IDX:RM:SECTION_NAME:SECTION_COUNT} // e.g. S{2:RM:Breakfast:5} - Section removed at index 2 with section named "Breakfast" and with 5 items
+        
+        // ROW INSERTION/REMOVAL (describe by section)
+        // R{SECTION_IDX:IN:ROW_IDX} // e.g. R{2:IN:3} - Row in section section 2 was inserted at index 3
+        // R{SECTION_IDX:RM:ROW_IDX} // e.g. R{2:RM:3} - Row in section section 2 was removed at index 3
+        // R{SECTION_IDX:CH:ROW_IDX} // e.g. R{2:CH:3} - Row in section section 2 was changed at index 3
+        // R{SECTION_IDX:MV:ROW_IDX:FROM<FROM_SEC:FROM_ROW>} // e.g. R{2:MV:3:FROM<2:5>} - Row moved into section 2 at index 3 from row 5 in section 2
+        
+        // describe inserted sections
+        for s in insertedSections ?? [] {
+            let desc = String(format: "S{%d:IN:%@:%d}", s.idx, s.section.name, s.section.numberOfObjects)
+            components.append(desc)
+        }
+        
+        // describe removed section
+        for s in removedSections ?? [] {
+            let desc = String(format: "S{%d:RM:%@:%d}", s.idx, s.section.name, s.section.numberOfObjects)
+            components.append(desc)
+        }
+        
+        // describe inserted rows
+        for r in insertedRows ?? [] {
+            let desc = String(format: "R{%d:IN:%d}", r.indexPath.section, r.indexPath.row)
+            components.append(desc)
+        }
+        
+        // describe removed rows
+        for r in removedRows ?? [] {
+            let desc = String(format: "R{%d:RM:%d}", r.indexPath.section, r.indexPath.row)
+            components.append(desc)
+        }
+        
+        // describe changed rows
+        for r in changedRows ?? [] {
+            let desc = String(format: "R{%d:CH:%d}", r.indexPath.section, r.indexPath.row)
+            components.append(desc)
+        }
+        
+        // describe moved rows
+        for r in movedRows ?? [] {
+            let desc = String(format: "R{%d:MV:%d:FROM<%d:%d>}", r.to.indexPath.section, r.to.indexPath.row, r.from.indexPath.section, r.from.indexPath.row)
+            components.append(desc)
+        }
+        
+        return components.joined(separator: ",")
+    }
 }

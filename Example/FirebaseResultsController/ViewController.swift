@@ -134,9 +134,8 @@ class ViewController: UITableViewController {
 }
 
 extension ViewController: ComposedFirebaseResultsControllerDelegate {
-    
     func controllerWillChangeContent(_ controller: ComposedFirebaseResultsController) {
-        willBeginChangingContentTime = Date()
+//        willBeginChangingContentTime = Date()
         tableView.beginUpdates()
     }
     
@@ -167,31 +166,31 @@ extension ViewController: ComposedFirebaseResultsControllerDelegate {
     }
     
     func controllerDidChangeContent(_ controller: ComposedFirebaseResultsController) {
-        let difference = Date().timeIntervalSince(willBeginChangingContentTime)
-        print("End: \(difference)")
+//        let difference = Date().timeIntervalSince(willBeginChangingContentTime)
+//        print("End: \(difference)")
         
         tableView.endUpdates()
 //        tableView.reloadData()
     }
-    
 }
 
 extension ViewController: FirebaseResultsControllerDelegate {
-    
     func controllerWillChangeContent(_ controller: FirebaseResultsController) {
-        willBeginChangingContentTime = Date()
+//        willBeginChangingContentTime = Date()
+        print("CURR|\(controller.description)")
     }
     
     func controllerDidChangeContent(_ controller: FirebaseResultsController) {
-        let difference = Date().timeIntervalSince(willBeginChangingContentTime)
-        print("End: \(difference)")
+//        let difference = Date().timeIntervalSince(willBeginChangingContentTime)
+//        print("End: \(difference)")
+//        print(controller.description)
     }
-    
 }
 
 extension ViewController: FirebaseResultsControllerChangeTracking {
-    
     func controller(_ controller: FirebaseResultsController, didChangeContentWith changes: FetchResultChanges) {
+        print("DIFF|\(changes.description)")
+        
         tableView.beginUpdates()
         
         // apply section changes
@@ -222,5 +221,4 @@ extension ViewController: FirebaseResultsControllerChangeTracking {
         
         tableView.endUpdates()
     }
-    
 }

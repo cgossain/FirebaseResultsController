@@ -25,7 +25,7 @@
 import Foundation
 import FirebaseDatabase
 
-fileprivate extension FetchResult {
+private extension FetchResult {
     static let nilSectionName = "" // the name of the `nil` section
 }
 
@@ -37,10 +37,10 @@ class FetchResult {
     let sectionNameKeyPath: String?
     
     /// The current fetch results ordered by section first (if a `sectionNameKeyPath` was provided), then by the fetch request sort descriptors.
-    fileprivate(set) var results: [DataSnapshot] = []
+    private(set) var results: [DataSnapshot] = []
     
     /// An array containing the name of each section that exists in the results. The order of the items in this list represent the order that the sections should appear.
-    /// -note: If the `sectionNameKeyPath` value is `nil`, a single section will be generated.
+    /// - note: If the `sectionNameKeyPath` value is `nil`, a single section will be generated.
     var sectionKeyValues: [String] {
         return Array(sections.map({ $0.sectionKeyValue }))
     }
@@ -56,16 +56,16 @@ class FetchResult {
         _sections = computed
         return computed
     }
-    fileprivate var _sections: [ResultsSection]? // hold the current non-stale sections array
+    private var _sections: [ResultsSection]? // hold the current non-stale sections array
     
     /// A dictionary that maps a section to its `sectionKeyValue`.
-    fileprivate var sectionsBySectionKeyValue: [String: ResultsSection] = [:]
+    private var sectionsBySectionKeyValue: [String: ResultsSection] = [:]
     
     /// A dictionary that maps a sections' index to its `sectionKeyValue`.
-    fileprivate var sectionIndicesBySectionKeyValue: [String: Int] = [:]
+    private var sectionIndicesBySectionKeyValue: [String: Int] = [:]
     
     /// A dictionary that maps the sections' offset (i.e. first index of the section in the overall `results` array) to its `sectionKeyValue`.
-    fileprivate var sectionOffsetsBySectionKeyValue: [String: Int] = [:]
+    private var sectionOffsetsBySectionKeyValue: [String: Int] = [:]
     
     
     // MARK: - Lifecycle
@@ -158,9 +158,19 @@ class FetchResult {
     }
 }
 
-fileprivate extension FetchResult {
+extension DataSnapshot {
+    /// Extracts the section key value for the given key path.
+    func sectionKeyValue(forSectionNameKeyPath sectionNameKeyPath: String?) -> String {
+        if let sectionNameKeyPath = sectionNameKeyPath, let obj = self.value, let value = (obj as AnyObject).value(forKeyPath: sectionNameKeyPath) {
+            return String(describing: value)
+        }
+        return FetchResult.nilSectionName
+    }
+}
+
+extension FetchResult {
     /// Adds the snapshot to the results at the correct position, and if it evaluates against the fetch request predicate.
-    func insert(snapshot: DataSnapshot) {
+    private func insert(snapshot: DataSnapshot) {
         // return early if the inserted snapshot does not evaluate against our predicate
         if !canInclude(snapshot: snapshot) {
             return
@@ -180,7 +190,7 @@ fileprivate extension FetchResult {
     }
     
     /// Replaces the existing version of the snapshot with the specified one.
-    func update(snapshot new: DataSnapshot) {
+    private func update(snapshot new: DataSnapshot) {
         // since the values will have changed, we cannot remove the "new" version of the snapshot, instead we'll have to locate and remove the "old" version of this snapshot
         // this is important when we are sectionning because the `sectionKeyValue` may have changed
         guard let idx = results.firstIndex(where: { $0.key == new.key }) else {
@@ -196,7 +206,7 @@ fileprivate extension FetchResult {
     }
     
     /// Removes the snapshot if it exists in the results.
-    func delete(snapshot: DataSnapshot) {
+    private func delete(snapshot: DataSnapshot) {
         guard let idx = results.firstIndex(where: { $0.key == snapshot.key }) else {
             return
         }
@@ -212,9 +222,9 @@ fileprivate extension FetchResult {
     }
 }
 
-fileprivate extension FetchResult {
+extension FetchResult {
     /// Specifies all the sort descriptors that should be used when inserting snapshots (including the `sectionNameKeyPath`).
-    var fetchSortDescriptors: [NSSortDescriptor] {
+    private var fetchSortDescriptors: [NSSortDescriptor] {
         var descriptors = [NSSortDescriptor]()
         
         // sort by the sections first
@@ -230,12 +240,12 @@ fileprivate extension FetchResult {
     }
     
     /// Extracts the section key value of the givent snapshot.
-    func sectionKeyValue(of snapshot: DataSnapshot) -> String {
+    private func sectionKeyValue(of snapshot: DataSnapshot) -> String {
         return snapshot.sectionKeyValue(forSectionNameKeyPath: self.sectionNameKeyPath)
     }
     
     /// Returns true if the given snapshot should be included in the data set.
-    func canInclude(snapshot: DataSnapshot) -> Bool {
+    private func canInclude(snapshot: DataSnapshot) -> Bool {
         if let predicate = fetchRequest.predicate {
             return predicate.evaluate(with: snapshot.value)
         }
@@ -243,12 +253,11 @@ fileprivate extension FetchResult {
     }
 }
 
-extension DataSnapshot {
-    /// Extracts the section key value for the given key path.
-    func sectionKeyValue(forSectionNameKeyPath sectionNameKeyPath: String?) -> String {
-        if let sectionNameKeyPath = sectionNameKeyPath, let obj = self.value, let value = (obj as AnyObject).value(forKeyPath: sectionNameKeyPath) {
-            return String(describing: value)
-        }
-        return FetchResult.nilSectionName
+extension FetchResult: CustomStringConvertible {
+    var description: String {
+        var components: [String] = []
+        let sectionSummaries = sections.map({ return "\($0.sectionKeyValue):\($0.numberOfObjects)" })
+        components.append("\(sections.count) sections {Name:Count} \(sectionSummaries.joined(separator: ","))")
+        return components.joined(separator: " ")
     }
 }
