@@ -15,10 +15,12 @@
     "git": "https://github.com/cgossain/FirebaseResultsController.git",
     "tag": "1.0.2"
   },
+  "swift_versions": [
+    "5.0"
+  ],
   "platforms": {
     "ios": "11.4"
   },
-  "swift_versions": "5.0",
   "static_framework": true,
   "source_files": "FirebaseResultsController/Classes/**/*",
   "dependencies": {
