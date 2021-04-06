@@ -41,7 +41,7 @@ protocol BatchControllerDelegate: class {
 /// immediatly, simply set the `processesChangesImmediately` property to `true`.
 final class BatchController {
     /// A unique identifier for the batch controller.
-    public var identifier: String { return throttler.identifier }
+    public var identifier: String { return throttler.id }
     
     /// The object that will receive batching updates.
     weak var delegate: BatchControllerDelegate?
