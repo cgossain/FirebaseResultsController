@@ -16,6 +16,22 @@
 
 #import <Foundation/Foundation.h>
 
+<<<<<<< HEAD:Example/Pods/FirebaseInstallations/FirebaseInstallations/Source/Library/IIDMigration/FIRInstallationsIIDTokenStore.h
+@class FBLPromise<ValueType>;
+
+NS_ASSUME_NONNULL_BEGIN
+
+/**
+ * The class reads a default IID token from IID store if available.
+ */
+@interface FIRInstallationsIIDTokenStore : NSObject
+
+- (instancetype)init NS_UNAVAILABLE;
+
+- (instancetype)initWithGCMSenderID:(NSString *)GCMSenderID;
+
+- (FBLPromise<NSString *> *)existingIIDDefaultToken;
+=======
 @class FIRDiagnosticsData;
 @class FIROptions;
 
@@ -29,6 +45,7 @@ NS_ASSUME_NONNULL_BEGIN
  * @param options The options object containing data to log.
  */
 + (void)logCoreTelemetryWithOptions:(FIROptions *)options;
+>>>>>>> Update example project pods:Example/Pods/FirebaseDatabase/FirebaseCore/Sources/Private/FIRCoreDiagnosticsConnector.h
 
 @end
 

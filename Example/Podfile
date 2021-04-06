@@ -1,7 +1,8 @@
-platform :ios, '11.4'
+platform :ios, '13.0'
 use_frameworks!
 
 target 'FirebaseResultsController_Example' do
+  pod 'FetchedResultsController', :path => '../../FetchedResultsController'
   pod 'Debounce', :path => '../../Debounce'
   pod 'FirebaseResultsController', :path => '../'
   

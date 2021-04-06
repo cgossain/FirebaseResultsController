@@ -1,0 +1,6 @@
+framework module FetchedResultsController {
+  umbrella header "FetchedResultsController-umbrella.h"
+
+  export *
+  module * { export * }
+}
