@@ -3,7 +3,10 @@ import PackageDescription
 
 let package = Package(
     name: "FirebaseResultsController",
-    platforms: [.iOS(.v12)],
+    platforms: [
+        .macOS(.v14),
+        .iOS(.v12)
+    ],
     products: [
         .library(
             name: "FirebaseResultsController",
